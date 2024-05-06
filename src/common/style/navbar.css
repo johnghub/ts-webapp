@@ -1,0 +1,78 @@
+/* General styles for the navbar */
+nav-bar {
+  display: flex;
+  justify-content: left;
+  align-items: center;
+  width: 100%;
+  background-color: #333; /* Dark background for the navbar */
+  color: white; /* Light text color for contrast */
+  padding: 10px 0; /* Vertical padding, no horizontal padding */
+  box-sizing: border-box; /* Includes padding and border in the element's total width and height */
+}
+
+nav-bar a,
+nav-bar button.dropbtn {
+  all: unset; /* Remove all default styling */
+  color: white; /* Ensures text color is white for all nav elements */
+  text-decoration: none; /* Removes underline from links */
+  font-weight: bold; /* Applies bold font style */
+  padding: 8px 16px; /* Consistent padding */
+  transition: background-color 0.3s, color 0.3s; /* Smooth transition for hover effects */
+  background-color: #333; /* Matching background color */
+  border: none; /* Removes any border */
+  cursor: pointer; /* Cursor appears as a pointer on hover */
+  display: inline-block; /* Ensures elements are lined up inline */
+}
+
+/* Hover effects for both links and dropdown button */
+nav-bar a:hover,
+nav-bar button.dropbtn:hover {
+  color: #000; /* Dark text on hover */
+  background-color: #ffcc00; /* Bright yellow background on hover */
+}
+
+/* Styles specific to dropdown components */
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #333; /* Matching navbar background color */
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+  z-index: 1;
+}
+
+.dropdown-content a {
+  color: white; /* Makes dropdown items white for better readability */
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+}
+
+.dropdown-content a:hover {
+  color: #000; /* Dark text on hover */
+  background-color: #ffcc00; /* Consistent hover color with other navbar links */
+}
+
+/* Show dropdown content when dropdown button is focused or when the content is set to 'show' */
+/* .dropdown .dropbtn:focus + .dropdown-content,
+.dropdown-content.show {
+  display: block;
+} */
+
+/* Show dropdown content when hovering over the dropdown button or dropdown content */
+.dropdown:hover .dropdown-content,
+.dropdown-content:hover {
+  display: block;
+}
+
+/* Styles for active or clicked link */
+nav-bar a.clicked,
+nav-bar .dropbtn.clicked {
+  background-color: #f00; /* Red background for active state */
+  color: #fff; /* White text for active state */
+}

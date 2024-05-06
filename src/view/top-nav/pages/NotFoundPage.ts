@@ -11,13 +11,12 @@ export default class NotFoundPage
 
   connectedCallback() {
     // Append rendered content directly to this component
-    this.render();
+    this.appendChild(this.render());
   }
 
   render(): HTMLElement {
-    {
-      const page = document.createElement("nfpage");
-      this.innerHTML = `
+    const page = document.createElement("nfpage");
+    page.innerHTML = `
             <style>
                 .nfpage {
                     display: block;
@@ -29,8 +28,7 @@ export default class NotFoundPage
             </style>
             <div class="nfpage"><h1>404 Not Found</h1><p>The page you are looking for does not exist.</p></div>
         `;
-      return page;
-    }
+    return page;
   }
 }
 

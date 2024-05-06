@@ -1,3 +1,4 @@
+import { getLastPathSegment } from "../../common/infrastructure/stringUtils";
 import { RouteElement } from "./routeelement";
 
 type ComponentLoaderMap = {
@@ -9,21 +10,41 @@ export class Router extends HTMLElement {
   private components: ComponentLoaderMap = {};
 
   constructor() {
+    console.log("Router constructor called");
+    //console.trace();
     super();
   }
 
   initializeComponentMap() {
-    const routeElements = this.querySelectorAll("route-element");
+    const routeElements: NodeListOf<HTMLElement> =
+      this.querySelectorAll("route-element");
     routeElements.forEach((element) => {
-      const componentName = element.getAttribute("component");
-      if (componentName) {
-        this.components[componentName] = () =>
-          import(`./pages/${componentName}.ts`);
-      }
+      this.registerRoute(element);
     });
 
     const notFoundName = "NotFoundPage";
     this.components[notFoundName] = () => import(`./pages/${notFoundName}.ts`);
+    //this.components[notFoundName] = () => import(`./pages/${notFoundName}`);
+  }
+
+  registerRoute(route: RouteElement) {
+    // Ensure fullPath is called on the route element, not 'this' which refers to the router
+    const path = route.fullPath || "notfound";
+    const componentName = route.getAttribute("component");
+    if (componentName) {
+      const importPath = this.convertPathToDirectory(path, componentName);
+      this.components[componentName] = () => import(`${importPath}`); //
+    }
+  }
+
+  convertPathToDirectory(fullPath: string, componentName: string): string {
+    // Split the path into segments and remove the last segment
+    const pathSegments = fullPath.split("/").filter(Boolean);
+    pathSegments.pop(); // Remove the last segment which is typically the component name
+    const directoryPath = pathSegments.join("/"); // Re-join the remaining segments to form the directory path
+    //const fileName = `${componentName}.ts`; // Construct the filename, need the '.ts' extension for Vite static analysis
+    const fileName = `${componentName}`; // Construct the filename, need the '.ts' extension for Vite static analysis
+    return `./pages/${directoryPath ? directoryPath + "/" : ""}${fileName}`;
   }
 
   connectedCallback() {
@@ -93,13 +114,14 @@ export class Router extends HTMLElement {
 
   handleRouteChange = async () => {
     const path = window.location.pathname || "/";
+    const uniquePath: string = getLastPathSegment(path);
     const routeElement = this.querySelector(
-      `route-element[path="${path}"]`
+      `route-element[path="${uniquePath}"]`
     ) as RouteElement;
 
     if (!routeElement) {
       // Prevent recursive loading if already on NotFound page
-      if (path !== "/notfound") {
+      if (uniquePath !== "/notfound") {
         history.pushState({}, "", "/notfound");
         this.dispatchEvent(new CustomEvent("route-change", { bubbles: true })); // Trigger the route change again
         return; // Exit the function to avoid loading below in this cycle
