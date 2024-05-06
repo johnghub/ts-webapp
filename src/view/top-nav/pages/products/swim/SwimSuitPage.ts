@@ -1,24 +1,22 @@
-import { IConnectedCallback } from "../../main";
-import { IRenderable } from "../../main";
+import { IConnectedCallback } from "../../../../main/";
+import { IRenderable } from "../../../../main/";
 
-export default class HomePage
+export default class SwimSuitPage
   extends HTMLElement
   implements IRenderable, IConnectedCallback
 {
   constructor() {
     super();
   }
-
   connectedCallback(): void {
-    // Append rendered content directly to this component
     this.appendChild(this.render());
   }
 
   render(): HTMLElement {
-    const page = document.createElement("homepage");
+    const page = document.createElement("swimsuitpage");
     page.innerHTML = `
             <style>
-                .home-page {
+                .about-page-style {
                     display: block;
                     padding: 16px;
                     background-color: #f0f0f0;  // Light grey background
@@ -26,12 +24,12 @@ export default class HomePage
                     font-size: 24px;  // Larger text for visibility
                 }
             </style>
-            <div class="home-page">This is the home page</div>
+            <div">This is the Swimsuit page</div>
         `;
     return page;
   }
 }
 
 // Define the custom element
-if (!customElements.get("home-page"))
-  customElements.define("home-page", HomePage);
+if (!customElements.get("swimsuit-page"))
+  customElements.define("swimsuit-page", SwimSuitPage);

@@ -3,6 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <title>Test NavBar</title>
+    <link rel="stylesheet" href="./src/common/style/navbar.css" />
     <link rel="stylesheet" href="./src/common/style/styles.css" />
     <link
       href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap"
@@ -13,6 +14,19 @@
     <nav-bar class="nav">
       <app-router>
         <route-element path="/" component="HomePage"></route-element>
+        <route-element path="/products" component="ProductsPage">
+          <route-element path="/skiing" component="SkiingPage"></route-element>
+          <route-element
+            path="/skating"
+            component="SkatingPage"
+          ></route-element>
+          <route-element path="/swim" component="ProductsSwimPage">
+            <route-element
+              path="/swimsuit"
+              component="SwimSuitPage"
+            ></route-element>
+          </route-element>
+        </route-element>
         <route-element path="/about" component="AboutPage"></route-element>
         <route-element path="/contact" component="ContactPage"></route-element>
       </app-router>
