@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Test NavBar</title>
+    <link rel="stylesheet" href="./src/common/style/styles.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <nav-bar class="nav">
+      <app-router>
+        <route-element path="/" component="HomePage"></route-element>
+        <route-element path="/about" component="AboutPage"></route-element>
+        <route-element path="/contact" component="ContactPage"></route-element>
+      </app-router>
+    </nav-bar>
+    <page-area class="main-content"> </page-area>
+    <site-footer class="footer"></site-footer>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
