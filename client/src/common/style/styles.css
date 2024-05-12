@@ -1,0 +1,48 @@
+/* Styles for the main content area */
+page-area {
+  flex: 1;
+  padding: 20px;
+  overflow: auto;
+  background-color: #f4f4f4;
+}
+
+/* Styles for the footer */
+site-footer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  background-color: #333;
+  color: white;
+  padding: 10px 0;
+  box-sizing: border-box;
+}
+
+/* Flex container for the entire body to manage layout */
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  font-family: "Roboto", sans-serif;
+  /* font-family: "Merriweather"; */
+}
+
+/* Styles for the main content area */
+.main-content {
+  flex: 1;
+  padding: 20px;
+  overflow: auto;
+  background-color: #f4f4f4;
+}
+
+/* Styles for the footer */
+.footer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  background-color: #333;
+  color: white;
+  padding: 10px 0;
+  box-sizing: border-box;
+}
