@@ -2,6 +2,7 @@ import { IConnectedCallback } from "../";
 import { IRenderable } from "../";
 import { capitalizeFirstLetter } from "../../../common";
 import { normalizePath } from "../../../common/infrastructure/stringUtils";
+import { RouteElement } from "../../top-nav";
 
 export class NavBar
   extends HTMLElement
@@ -34,18 +35,28 @@ export class NavBar
       alignContainers.forEach((container) => {
         const containerDiv = document.createElement("div");
         containerDiv.className = container.getAttribute("alignment") || "left"; // Use alignment for class
+
         const routeElements = container.querySelectorAll("route-element");
 
-        routeElements.forEach((route) => {
-          if (
-            !route.parentElement ||
-            route.parentElement.tagName.toUpperCase() !== "ROUTE-ELEMENT"
-          ) {
-            // It's a top-level route, build the main menu item
-            const menuItem = this.createMenuItem(route);
-            containerDiv.appendChild(menuItem);
-          }
-        });
+        if (customElements.get("route-element")) {
+          // The custom element is defined
+          console.error("route is defined, but no route logic is being called");
+        } else {
+          customElements.whenDefined("route-element").then(() => {
+            routeElements.forEach((route: Element) => {
+              if ((route as RouteElement).isVisible) {
+                if (
+                  !route.parentElement ||
+                  route.parentElement.tagName.toUpperCase() !== "ROUTE-ELEMENT"
+                ) {
+                  // It's a top-level route, build the main menu item
+                  const menuItem = this.createMenuItem(route);
+                  containerDiv.appendChild(menuItem);
+                }
+              }
+            });
+          });
+        }
 
         nav.appendChild(containerDiv);
       });

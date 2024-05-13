@@ -6,6 +6,34 @@ export class RouteElement extends HTMLElement {
 
   connectedCallback() {
     this.updateFullPath();
+    // Listen to a global authentication change event
+    //    window.addEventListener('auth-change', this.handleAuthChange);
+  }
+
+  disconnectedCallback() {
+    // Remove the event listener when the element is removed from the DOM
+    //    window.removeEventListener('auth-change', this.handleAuthChange);
+  }
+
+  handleAuthChange = () => {
+    // Update visibility based on the new authentication state
+    //    this.updateVisibility();
+  };
+
+  get isVisible(): boolean {
+    //return this.checkAuthentication() && this.meetsAuthRequirement();
+    return this.meetsAuthRequirement();
+  }
+
+  meetsAuthRequirement(): boolean {
+    const ownAuth = this.hasAttribute("auth");
+    const parentAuthContainer = Boolean(this.closest("auth-container"));
+    return (!ownAuth && !parentAuthContainer) || this.checkAuthentication();
+  }
+
+  checkAuthentication(): boolean {
+    // Implement the actual authentication logic here
+    return false; // Placeholder: replace with actual logic
   }
 
   updateFullPath() {
