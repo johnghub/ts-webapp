@@ -1,4 +1,5 @@
 import { getLastPathSegment } from "../../common/infrastructure/stringUtils";
+import { LoginDialog } from "./LoginDialog";
 import { RouteElement } from "./routeelement";
 
 type ComponentLoaderMap = {
@@ -25,6 +26,11 @@ export class Router extends HTMLElement {
     const notFoundName = "NotFoundPage";
     this.components[notFoundName] = () => import(`./pages/${notFoundName}.ts`);
     //this.components[notFoundName] = () => import(`./pages/${notFoundName}`);
+
+    // Explicitly ensure LoginDialog is also initialized
+    if (!customElements.get("login-dialog")) {
+      customElements.define("login-dialog", LoginDialog);
+    }
   }
 
   registerRoute(route: RouteElement) {
@@ -125,6 +131,14 @@ export class Router extends HTMLElement {
         history.pushState({}, "", "/notfound");
         this.dispatchEvent(new CustomEvent("route-change", { bubbles: true })); // Trigger the route change again
         return; // Exit the function to avoid loading below in this cycle
+      }
+    }
+
+    if (routeElement && routeElement.dataset.action === "open-login-dialog") {
+      const loginDialog = document.querySelector("login-dialog") as LoginDialog;
+      if (loginDialog) {
+        loginDialog.show(); // Assuming login-dialog has a show method
+        return; // Stop further processing to just show the dialog
       }
     }
 

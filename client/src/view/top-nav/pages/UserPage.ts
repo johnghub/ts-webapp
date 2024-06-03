@@ -1,5 +1,5 @@
-import { IConnectedCallback } from "../../../main";
-import { IRenderable } from "../../../main";
+import { IConnectedCallback } from "../../main";
+import { IRenderable } from "../../main";
 
 export default class UserPage
   extends HTMLElement

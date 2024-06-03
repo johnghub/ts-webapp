@@ -5,12 +5,16 @@
     <title>Test NavBar</title>
     <link rel="stylesheet" href="./src/common/style/navbar.css" />
     <link rel="stylesheet" href="./src/common/style/styles.css" />
+    <link rel="stylesheet" href="./src/common/style/loginmodal.css" />
     <link
       href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap"
       rel="stylesheet"
     />
   </head>
   <body>
+    <auth-container id="authManager">
+      <login-dialog id="loginDialog" class="modal"></login-dialog>
+    </auth-container>
     <nav-bar class="nav">
       <app-router>
         <align-container alignment="left">
@@ -41,11 +45,15 @@
         </align-container>
         <align-container alignment="right">
           <route-element
-            path="/authentication"
-            component="AuthPage"
+            path="/Login&#47;Register"
+            component="LoginRegisterPage"
             data-align="right"
           >
-            <route-element path="/login" component="LoginPage"></route-element>
+            <route-element
+              path="/login"
+              component="LoginPage"
+              data-action="open-login-dialog"
+            ></route-element>
             <route-element
               path="/logout"
               component="LogoutPage"
@@ -54,6 +62,7 @@
         </align-container>
       </app-router>
     </nav-bar>
+
     <page-area class="main-content"> </page-area>
     <site-footer class="footer"></site-footer>
     <script type="module" src="/src/main.ts"></script>
