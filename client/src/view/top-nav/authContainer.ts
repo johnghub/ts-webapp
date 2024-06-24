@@ -19,12 +19,24 @@ export class AuthContainer
       const customEvent = event as CustomEvent<{ user: any }>; // Type assertion
       console.log("User authenticated:", customEvent.detail.user);
       // Update UI or internal state here
+      // Update internal state immutably
+      this.state = {
+        ...this.state,
+        isAuthenticated: true,
+        user: customEvent.detail.user,
+      };
     });
 
     // Listen for the 'login-failed' event
     this.addEventListener("login-failed", (event: Event) => {
       const customEvent = event as CustomEvent<{ error: string }>; // Type assertion
       alert("Login Failed: " + customEvent.detail.error);
+      // Update internal state immutably
+      this.state = {
+        ...this.state,
+        isAuthenticated: false,
+        user: null,
+      };
     });
 
     // Listen for the 'login-error' event

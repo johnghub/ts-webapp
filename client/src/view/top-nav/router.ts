@@ -11,8 +11,6 @@ export class Router extends HTMLElement {
   private components: ComponentLoaderMap = {};
 
   constructor() {
-    console.log("Router constructor called");
-    //console.trace();
     super();
   }
 
@@ -24,13 +22,7 @@ export class Router extends HTMLElement {
     });
 
     const notFoundName = "NotFoundPage";
-    this.components[notFoundName] = () => import(`./pages/${notFoundName}.ts`);
-    //this.components[notFoundName] = () => import(`./pages/${notFoundName}`);
-
-    // Explicitly ensure LoginDialog is also initialized
-    if (!customElements.get("login-dialog")) {
-      customElements.define("login-dialog", LoginDialog);
-    }
+    this.components[notFoundName] = () => import(`./pages/${notFoundName}`);
   }
 
   registerRoute(route: RouteElement) {

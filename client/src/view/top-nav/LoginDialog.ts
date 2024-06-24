@@ -15,7 +15,6 @@ export class LoginDialog extends HTMLElement {
   constructor() {
     super();
     this.method = AuthMethod.Password; // Default method
-    console.log("LoginDialog ctor called.");
   }
 
   connectedCallback() {
@@ -167,10 +166,18 @@ export class LoginDialog extends HTMLElement {
       // Mocking a successful login response
       setTimeout(() => {
         // Simulate network delay
-        const mockResponse = { success: true, message: "Login successful" };
+        const mockResponse = {
+          success: true,
+          message: "Login successful",
+          user: { name: "Test User" },
+        };
         console.log("Success:", mockResponse);
         this.dispatchEvent(
-          new CustomEvent("auth-change", { detail: mockResponse })
+          new CustomEvent("login-success", {
+            detail: mockResponse,
+            bubbles: true,
+            composed: true,
+          })
         );
         this.hide(); // Hide the dialog on successful login
       }, 1000);
@@ -208,7 +215,4 @@ export class LoginDialog extends HTMLElement {
 
 if (!customElements.get("login-dialog")) {
   customElements.define("login-dialog", LoginDialog);
-  console.log("Defining LoginDialog...");
-} else {
-  console.log("LoginDialog is already defined.");
 }
