@@ -35,8 +35,8 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowSpecificOrigin",
-        builder => builder.WithOrigins("http://your-spa-domain.com")
+    options.AddPolicy("DevCorsPolicy",
+        builder => builder.WithOrigins("http://localhost:5173")
         .AllowAnyMethod()
         .AllowAnyHeader()
         .AllowCredentials());
@@ -65,6 +65,9 @@ app.Use(async (context, next) =>
         context.Response.StatusCode = 403;
     }
 });
+
+// Use CORS with the specified policy
+app.UseCors("DevCorsPolicy");
 
 app.MapControllers();
 

@@ -4,47 +4,60 @@ export class AuthContainer
   extends HTMLElement
   implements IRenderable, IConnectedCallback
 {
-  private state: { isAuthenticated: boolean; user: any } = {
+  private state: {
+    isAuthenticated: boolean;
+    user: any | null;
+    error?: string;
+  } = {
     isAuthenticated: false,
     user: null,
   };
 
   constructor() {
     super();
+    //this.isAuthenticated = this.isAuthenticated.bind(this);
   }
 
   connectedCallback() {
-    // Listen for the 'login-success' event
-    this.addEventListener("login-success", (event: Event) => {
-      const customEvent = event as CustomEvent<{ user: any }>; // Type assertion
-      console.log("User authenticated:", customEvent.detail.user);
-      // Update UI or internal state here
-      // Update internal state immutably
-      this.state = {
-        ...this.state,
-        isAuthenticated: true,
-        user: customEvent.detail.user,
-      };
-    });
-
-    // Listen for the 'login-failed' event
-    this.addEventListener("login-failed", (event: Event) => {
-      const customEvent = event as CustomEvent<{ error: string }>; // Type assertion
-      alert("Login Failed: " + customEvent.detail.error);
-      // Update internal state immutably
-      this.state = {
-        ...this.state,
-        isAuthenticated: false,
-        user: null,
-      };
-    });
+    // Adding event listener when the component is connected to the document
+    this.addEventListener("auth-change", this.handleAuthChange);
 
     // Listen for the 'login-error' event
-    this.addEventListener("login-error", (event: Event) => {
-      const customEvent = event as CustomEvent<{ error: string }>; // Type assertion
-      console.error("Login Error:", customEvent.detail.error);
-    });
+    // this.addEventListener("login-error", (event: Event) => {
+    //   const customEvent = event as CustomEvent<{ error: string }>; // Type assertion
+    //   console.error("Login Error:", customEvent.detail.error);
+    // });
   }
+
+  disconnectedCallback(): void {
+    // Removing the event listener when the component is disconnected from the document
+    this.removeEventListener("auth-change", this.handleAuthChange);
+  }
+
+  handleAuthChange = (event: Event): void => {
+    // Cast the event to CustomEvent with the expected detail type
+    const customEvent = event as CustomEvent<{
+      isAuthenticated: boolean;
+      user?: any;
+      error?: string;
+    }>;
+    const { isAuthenticated, user, error } = customEvent.detail;
+
+    console.log(
+      isAuthenticated ? "User authenticated:" : "Authentication failed",
+      customEvent.detail
+    );
+
+    // Update internal state immutably
+    this.state = {
+      ...this.state,
+      isAuthenticated,
+      user: isAuthenticated ? user : null,
+      error: !isAuthenticated ? error : undefined,
+    };
+
+    this.updateUI(); // Update UI elements based on the new state
+  };
 
   updateUI() {
     // Fetch the element from the DOM
@@ -78,12 +91,9 @@ export class AuthContainer
     return div;
   }
 
-  isAuthenticated(): boolean {
-    // Implement authentication check logic here
-    // This could involve checking a token or a global auth state
-    // For simplicity, this is a placeholder function
-    return false; // Replace this with actual authentication logic
-  }
+  isAuthenticated = (): boolean => {
+    return this.state.isAuthenticated;
+  };
 }
 
 if (!customElements.get("auth-container"))

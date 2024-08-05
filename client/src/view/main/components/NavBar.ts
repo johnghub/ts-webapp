@@ -73,6 +73,9 @@ export class NavBar
 
     const name = capitalizeFirstLetter(currentPath.replace("/", "") || "home");
 
+    const authVisible = routeElement.getAttribute("data-auth-visible") || "";
+    const id = routeElement.getAttribute("id") || "";
+
     // Get only route-element children
     const routeElementChildren = Array.from(routeElement.children).filter(
       (child) => child.tagName === "ROUTE-ELEMENT"
@@ -81,7 +84,30 @@ export class NavBar
     if (routeElementChildren.length > 0) {
       // It has nested route-elements, create a dropdown
       const dropdown = document.createElement("div");
+
+      // const isAuthenticated = (
+      //   document.querySelector("auth-container") as any
+      // ).isAuthenticated();
+
+      // const requiresAuth = (authVisible || "") === "authenticated";
+      // if (requiresAuth) {
+      //   dropdown.setAttribute("data-visible", `'${isAuthenticated}'`);
+      //   if (isAuthenticated)
+      //     console.log(
+      //       `Route ${id} requires: ${requiresAuth}, isAuthenticated: ${isAuthenticated}`
+      //     );
+      // }
+
       dropdown.className = "dropdown";
+
+      if (authVisible) {
+        dropdown.setAttribute("data-auth-visible", authVisible);
+      }
+
+      if (id) {
+        dropdown.setAttribute("id", id);
+      }
+
       const button = document.createElement("button");
       button.className = "dropbtn";
       button.textContent = name;

@@ -10,53 +10,103 @@
       href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap"
       rel="stylesheet"
     />
+    <link rel="icon" type="image/png" href="/favicon.ico" />
   </head>
   <body>
     <auth-container id="authManager">
       <login-dialog id="loginDialog" class="modal"></login-dialog>
     </auth-container>
+    <auth-state-service></auth-state-service>
     <nav-bar class="nav">
       <app-router>
         <align-container alignment="left">
-          <route-element path="/" component="HomePage"></route-element>
-          <route-element path="/products" component="ProductsPage">
+          <route-element
+            id="homeroute"
+            path="/"
+            component="HomePage"
+          ></route-element>
+          <route-element
+            id="productsroute"
+            path="/products"
+            component="ProductsPage"
+          >
             <route-element
+              id="skiingroute"
               path="/skiing"
               component="SkiingPage"
             ></route-element>
             <route-element
+              id="skatingroute"
               path="/skating"
               component="SkatingPage"
             ></route-element>
             <route-element
+              id="swimsuiteroute"
               path="/swimsuit"
               component="SwimSuitPage"
             ></route-element>
           </route-element>
-          <route-element path="/about" component="AboutPage"></route-element>
           <route-element
+            id="aboutroute"
+            path="/about"
+            component="AboutPage"
+          ></route-element>
+          <route-element
+            id="contactroute"
             path="/contact"
             component="ContactPage"
           ></route-element>
           <auth-container>
-            <route-element path="/user" component="UserPage"></route-element>
-            <route-element path="/admin" component="AdminPage"></route-element>
+            <route-element
+              id="userroute"
+              path="/user"
+              component="UserPage"
+            ></route-element>
+            <route-element
+              id="adminroute"
+              path="/admin"
+              component="AdminPage"
+            ></route-element>
           </auth-container>
         </align-container>
         <align-container alignment="right">
           <route-element
+            id="LoginRegisterMenu"
             path="/Login&#47;Register"
             component="LoginRegisterPage"
             data-align="right"
           >
             <route-element
+              id="LoginAction"
               path="/login"
               component="LoginPage"
               data-action="open-login-dialog"
+              data-auth-visible="anonymous"
             ></route-element>
             <route-element
+              id="LogoutAction"
+              path="/logout"
+              component="LoginOutPage"
+              data-action="logout-user"
+              data-auth-visible="authenticated"
+            ></route-element>
+          </route-element>
+          <route-element
+            id="ProfileMenu"
+            path="/Profile"
+            component="fooPage"
+            data-align="right"
+            data-auth-visible="authenticated"
+          >
+            <route-element
+              id="logoutroute"
               path="/logout"
               component="LogoutPage"
+            ></route-element>
+            <route-element
+              id="profileroute"
+              path="/profile"
+              component="UserPage"
             ></route-element>
           </route-element>
         </align-container>

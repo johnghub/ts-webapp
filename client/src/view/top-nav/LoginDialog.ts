@@ -161,6 +161,63 @@ export class LoginDialog extends HTMLElement {
 
     this.clearError();
 
+    // Convert formData to JSON
+    const body = JSON.stringify({
+      username: jsonData.username,
+      password: jsonData.password,
+    });
+
+    // POST request to server
+    fetch("http://localhost:5129/api/auth/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: body,
+    })
+      .then((response) => {
+        if (!response.ok) {
+          // If response not ok, throw an error to be caught later
+          throw new Error("Network response was not ok");
+        }
+        return response.json(); // Parse JSON response
+      })
+      .then((data) => {
+        console.log("Success:", data);
+        // Dispatch success event if login successful
+        if (data.success) {
+          this.dispatchEvent(
+            new CustomEvent("login-success", {
+              detail: {
+                user: data.user,
+                isAuthenticated: true,
+              },
+              bubbles: true,
+              composed: true,
+            })
+          );
+          this.hide(); // Hide the dialog on successful login
+        } else {
+          // If login not successful, dispatch 'auth-change' with failure details
+          this.dispatchEvent(
+            new CustomEvent("login-fail", {
+              detail: {
+                isAuthenticated: false,
+                user: null,
+              },
+              bubbles: true,
+              composed: true,
+            })
+          );
+        }
+      })
+      .catch((error) => {
+        console.error("Error:", error.message);
+        // Display error message
+        this.displayError(error.message);
+      });
+
+    /*
     const mockSuccess: boolean = true;
     if (mockSuccess)
       // Mocking a successful login response
@@ -192,6 +249,7 @@ export class LoginDialog extends HTMLElement {
           this.displayError(errorResponse.message);
         }
       }, 1000);
+*/
 
     // fetch("/login", {
     //   method: "POST",

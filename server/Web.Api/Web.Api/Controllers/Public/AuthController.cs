@@ -31,7 +31,10 @@ namespace Web.Api.Controllers.Public
             //await HttpContext.SignInAsync("CookieAuth", principal);
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
 
-            return NoContent();
+            return Ok(new { success = true, message = "Login successful", user = new { name = "Test User" } } ); 
+        
+
+            //return NoContent();
         }
 
         [HttpPost("logout")]
