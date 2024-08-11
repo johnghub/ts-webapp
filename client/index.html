@@ -13,9 +13,10 @@
     <link rel="icon" type="image/png" href="/favicon.ico" />
   </head>
   <body>
-    <auth-container id="authManager">
+    <!-- <auth-container id="authManager">
       <login-dialog id="loginDialog" class="modal"></login-dialog>
-    </auth-container>
+    </auth-container> -->
+    <login-dialog id="loginDialog" class="modal"></login-dialog>
     <auth-state-service></auth-state-service>
     <nav-bar class="nav">
       <app-router>
@@ -75,21 +76,20 @@
             path="/Login&#47;Register"
             component="LoginRegisterPage"
             data-align="right"
+            data-auth-visible="anonymous"
           >
             <route-element
               id="LoginAction"
               path="/login"
               component="LoginPage"
               data-action="open-login-dialog"
-              data-auth-visible="anonymous"
             ></route-element>
-            <route-element
-              id="LogoutAction"
-              path="/logout"
-              component="LoginOutPage"
-              data-action="logout-user"
-              data-auth-visible="authenticated"
-            ></route-element>
+            <!-- <route-element
+              id="Register"
+              path="/register"
+              component="RegisterPage"
+              data-action="register-user"
+            ></route-element> -->
           </route-element>
           <route-element
             id="ProfileMenu"

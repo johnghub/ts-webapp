@@ -187,7 +187,7 @@ export class LoginDialog extends HTMLElement {
         // Dispatch success event if login successful
         if (data.success) {
           this.dispatchEvent(
-            new CustomEvent("login-success", {
+            new CustomEvent(DLG_LOGIN_SUCCESS_MSG, {
               detail: {
                 user: data.user,
                 isAuthenticated: true,
@@ -200,7 +200,7 @@ export class LoginDialog extends HTMLElement {
         } else {
           // If login not successful, dispatch 'auth-change' with failure details
           this.dispatchEvent(
-            new CustomEvent("login-fail", {
+            new CustomEvent(DLG_LOGIN_FAIL_MSG, {
               detail: {
                 isAuthenticated: false,
                 user: null,
@@ -271,6 +271,13 @@ export class LoginDialog extends HTMLElement {
   }
 }
 
-if (!customElements.get("login-dialog")) {
-  customElements.define("login-dialog", LoginDialog);
+// Messages
+export const DLG_LOGIN_SUCCESS_MSG = "login-success";
+export const DLG_LOGIN_FAIL_MSG = "login-fail";
+
+// Tags
+export const LOGIN_DLG_TAG = "login-dialog";
+
+if (!customElements.get(LOGIN_DLG_TAG)) {
+  customElements.define(LOGIN_DLG_TAG, LoginDialog);
 }

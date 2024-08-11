@@ -170,5 +170,7 @@ export class Router extends HTMLElement {
   }
 }
 
-if (!customElements.get("app-router"))
-  customElements.define("app-router", Router);
+const APP_ROUTER_TAG = "app-router";
+
+if (!customElements.get(APP_ROUTER_TAG))
+  customElements.define(APP_ROUTER_TAG, Router);

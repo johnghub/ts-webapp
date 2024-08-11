@@ -1,7 +1,5 @@
 import { ServiceBase } from "./ServiceBase";
 
-const SERVICE_REGISTRY_TAG = "service-registry";
-
 export class ServiceRegistry extends HTMLElement {
   static getService<T extends ServiceBase>(serviceClass: {
     new (): T;
@@ -16,6 +14,8 @@ export class ServiceRegistry extends HTMLElement {
     }
   }
 }
+
+const SERVICE_REGISTRY_TAG = "service-registry";
 
 if (!customElements.get(SERVICE_REGISTRY_TAG))
   customElements.define(SERVICE_REGISTRY_TAG, ServiceRegistry);

@@ -1,4 +1,8 @@
-import { IConnectedCallback } from "../";
+import {
+  AUTH_STATE_CHANGED_MSG,
+  AUTH_STATE_SERVICE_TAG,
+  IConnectedCallback,
+} from "../";
 import { IRenderable } from "../";
 import { capitalizeFirstLetter } from "../../../common";
 import { normalizePath } from "../../../common/infrastructure/stringUtils";
@@ -15,8 +19,50 @@ export class NavBar
 
   connectedCallback(): void {
     this.appendChild(this.render());
+    document.addEventListener(AUTH_STATE_CHANGED_MSG, this.handleAuthChange);
+  }
+  //  /*
+  disconnectedCallback() {
+    document.removeEventListener(AUTH_STATE_CHANGED_MSG, this.handleAuthChange);
   }
 
+  handleAuthChange = (event: Event) => {
+    this.updateVisibility();
+  };
+
+  updateVisibility() {
+    const authroutes = document.querySelectorAll(`div[${AUTH_VIS_ATTR}]`);
+    const isAuthenticated = (
+      document.querySelector(AUTH_STATE_SERVICE_TAG) as any
+    ).isAuthenticated();
+
+    if (
+      isAuthenticated &&
+      //typeof isAuthenticated === "function" &&
+      authroutes
+    ) {
+      authroutes.forEach((authroute) => {
+        const visibility = authroute.getAttribute(AUTH_VIS_ATTR);
+
+        switch (visibility) {
+          case "authenticated":
+            //authroute.classList.add("visible");
+            authroute.style.display = isAuthenticated ? "inline-block" : "none";
+            break;
+          case "anonymous":
+            //authroute.classList.remove("visible");
+            authroute.style.display = !isAuthenticated
+              ? "inline-block"
+              : "none";
+            break;
+          default:
+          // Treat "always" or any other unspecified case as default, meaning "anonymous"
+        }
+      });
+    }
+  }
+
+  // */
   render(): HTMLElement {
     const nav = this.updateLinks();
     nav.className = "nav-bar";
@@ -73,7 +119,7 @@ export class NavBar
 
     const name = capitalizeFirstLetter(currentPath.replace("/", "") || "home");
 
-    const authVisible = routeElement.getAttribute("data-auth-visible") || "";
+    const authVisible = routeElement.getAttribute(AUTH_VIS_ATTR) || "";
     const id = routeElement.getAttribute("id") || "";
 
     // Get only route-element children
@@ -85,23 +131,10 @@ export class NavBar
       // It has nested route-elements, create a dropdown
       const dropdown = document.createElement("div");
 
-      // const isAuthenticated = (
-      //   document.querySelector("auth-container") as any
-      // ).isAuthenticated();
-
-      // const requiresAuth = (authVisible || "") === "authenticated";
-      // if (requiresAuth) {
-      //   dropdown.setAttribute("data-visible", `'${isAuthenticated}'`);
-      //   if (isAuthenticated)
-      //     console.log(
-      //       `Route ${id} requires: ${requiresAuth}, isAuthenticated: ${isAuthenticated}`
-      //     );
-      // }
-
       dropdown.className = "dropdown";
 
       if (authVisible) {
-        dropdown.setAttribute("data-auth-visible", authVisible);
+        dropdown.setAttribute(AUTH_VIS_ATTR, authVisible);
       }
 
       if (id) {
@@ -140,6 +173,8 @@ export class NavBar
 
       dropdown.appendChild(button);
       dropdown.appendChild(dropdownContent);
+      dropdown.style.display =
+        authVisible === "anonymous" ? "inline-block" : "none";
       return dropdown;
     } else {
       // No children, create a simple link
@@ -161,5 +196,7 @@ export class NavBar
     return anchor;
   }
 }
+
+const AUTH_VIS_ATTR = "data-auth-visible";
 
 if (!customElements.get("nav-bar")) customElements.define("nav-bar", NavBar);

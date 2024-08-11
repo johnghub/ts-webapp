@@ -1,7 +1,5 @@
 import { ServiceBase } from "./ServiceBase";
 
-const AUTH_STATE_SERVICE_TAG = "auth-state-service";
-
 export class AuthStateService extends ServiceBase implements IAuthStateService {
   private _authState: { isAuthenticated: boolean } = { isAuthenticated: false };
 
@@ -24,7 +22,7 @@ export class AuthStateService extends ServiceBase implements IAuthStateService {
 
   dispatchEventState(): void {
     this.dispatchEvent(
-      new CustomEvent("auth-state-changed", {
+      new CustomEvent(AUTH_STATE_CHANGED_MSG, {
         detail: { ...this._authState },
         bubbles: true,
         composed: true,
@@ -32,9 +30,9 @@ export class AuthStateService extends ServiceBase implements IAuthStateService {
     );
   }
 
-  isAuthenticated(): boolean {
+  isAuthenticated = (): boolean => {
     return this._authState.isAuthenticated;
-  }
+  };
 
   disconnectedCallback(): void {
     document.removeEventListener("login-success", this.handleLoginSuccess);
@@ -48,6 +46,12 @@ export class AuthStateService extends ServiceBase implements IAuthStateService {
 export interface IAuthStateService {
   isAuthenticated(): boolean;
 }
+
+// Messages
+export const AUTH_STATE_CHANGED_MSG = "auth-state-changed";
+
+// Tags
+export const AUTH_STATE_SERVICE_TAG = "auth-state-service";
 
 if (!customElements.get(AUTH_STATE_SERVICE_TAG))
   customElements.define(AUTH_STATE_SERVICE_TAG, AuthStateService);
