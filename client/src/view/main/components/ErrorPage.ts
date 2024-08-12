@@ -32,4 +32,7 @@ export class ErrorPage extends HTMLElement {
   }
 }
 
-customElements.define("error-page", ErrorPage);
+const ERROR_PAGE_TAG = "error-page";
+
+if (!customElements.get(ERROR_PAGE_TAG))
+  customElements.define(ERROR_PAGE_TAG, ErrorPage);

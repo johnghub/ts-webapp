@@ -46,6 +46,8 @@ export default class AdminPage
     return false;
   }
 }
+
+const ADMIN_PAGE_TAG = "admin-page";
 // Define the custom element
-if (!customElements.get("admin-page"))
-  customElements.define("admin-page", AdminPage);
+if (!customElements.get(ADMIN_PAGE_TAG))
+  customElements.define(ADMIN_PAGE_TAG, AdminPage);

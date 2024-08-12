@@ -30,6 +30,8 @@ export default class SkiingPage
   }
 }
 
+const SKIING_PAGE = "skiing-page";
+
 // Define the custom element
-if (!customElements.get("skiing-page"))
-  customElements.define("skiing-page", SkiingPage);
+if (!customElements.get(SKIING_PAGE))
+  customElements.define(SKIING_PAGE, SkiingPage);

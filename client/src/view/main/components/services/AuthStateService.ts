@@ -1,3 +1,4 @@
+import { AUTH_STATE_SERVICE_TAG } from "../../../../common";
 import { ServiceBase } from "./ServiceBase";
 
 export class AuthStateService extends ServiceBase implements IAuthStateService {
@@ -49,9 +50,6 @@ export interface IAuthStateService {
 
 // Messages
 export const AUTH_STATE_CHANGED_MSG = "auth-state-changed";
-
-// Tags
-export const AUTH_STATE_SERVICE_TAG = "auth-state-service";
 
 if (!customElements.get(AUTH_STATE_SERVICE_TAG))
   customElements.define(AUTH_STATE_SERVICE_TAG, AuthStateService);

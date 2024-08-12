@@ -20,5 +20,7 @@ export class PageArea
   }
 }
 
-if (!customElements.get("page-area"))
-  customElements.define("page-area", PageArea);
+const PAGE_AREA_TAG = "page-area";
+
+if (!customElements.get(PAGE_AREA_TAG))
+  customElements.define(PAGE_AREA_TAG, PageArea);

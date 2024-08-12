@@ -1,3 +1,5 @@
+import { ROUTE_ELEMENT_TAG } from "../../common";
+
 // Define RouteElement as a custom element with path and component attributes.
 export class RouteElement extends HTMLElement {
   constructor() {
@@ -55,8 +57,6 @@ export class RouteElement extends HTMLElement {
     return this.getAttribute("component");
   }
 }
-
-const ROUTE_ELEMENT_TAG = "route-element";
 
 if (!customElements.get(ROUTE_ELEMENT_TAG))
   customElements.define(ROUTE_ELEMENT_TAG, RouteElement);

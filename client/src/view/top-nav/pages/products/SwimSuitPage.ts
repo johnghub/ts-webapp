@@ -30,6 +30,8 @@ export default class SwimSuitPage
   }
 }
 
+const SWIMSUIT_PAGE_TAG = "swimsuit-page";
+
 // Define the custom element
-if (!customElements.get("swimsuit-page"))
-  customElements.define("swimsuit-page", SwimSuitPage);
+if (!customElements.get(SWIMSUIT_PAGE_TAG))
+  customElements.define(SWIMSUIT_PAGE_TAG, SwimSuitPage);

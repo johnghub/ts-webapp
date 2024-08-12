@@ -30,6 +30,8 @@ export default class AboutPage
   }
 }
 
+const ABOUT_PAGE_TAG = "about-page";
+
 // Define the custom element
-if (!customElements.get("about-page"))
-  customElements.define("about-page", AboutPage);
+if (!customElements.get(ABOUT_PAGE_TAG))
+  customElements.define(ABOUT_PAGE_TAG, AboutPage);

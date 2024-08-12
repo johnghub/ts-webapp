@@ -30,6 +30,8 @@ export default class SkatingPage
   }
 }
 
+const SKATING_PAGE_TAG = "skating-page";
+
 // Define the custom element
-if (!customElements.get("skating-page"))
-  customElements.define("skating-page", SkatingPage);
+if (!customElements.get(SKATING_PAGE_TAG))
+  customElements.define(SKATING_PAGE_TAG, SkatingPage);

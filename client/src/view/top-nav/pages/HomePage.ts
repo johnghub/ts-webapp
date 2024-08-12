@@ -32,6 +32,8 @@ export default class HomePage
   }
 }
 
+const HOME_PAGE_TAG = "home-page";
+
 // Define the custom element
-if (!customElements.get("home-page"))
-  customElements.define("home-page", HomePage);
+if (!customElements.get(HOME_PAGE_TAG))
+  customElements.define(HOME_PAGE_TAG, HomePage);

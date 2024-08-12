@@ -1,10 +1,10 @@
-import {
-  AUTH_STATE_CHANGED_MSG,
-  AUTH_STATE_SERVICE_TAG,
-  IConnectedCallback,
-} from "../";
+import { AUTH_STATE_CHANGED_MSG, IConnectedCallback } from "../";
 import { IRenderable } from "../";
-import { capitalizeFirstLetter } from "../../../common";
+import {
+  AUTH_STATE_SERVICE_TAG,
+  capitalizeFirstLetter,
+  NAV_BAR_TAG,
+} from "../../../common";
 import { normalizePath } from "../../../common/infrastructure/stringUtils";
 import { RouteElement } from "../../top-nav";
 
@@ -199,4 +199,5 @@ export class NavBar
 
 const AUTH_VIS_ATTR = "data-auth-visible";
 
-if (!customElements.get("nav-bar")) customElements.define("nav-bar", NavBar);
+if (!customElements.get(NAV_BAR_TAG))
+  customElements.define(NAV_BAR_TAG, NavBar);

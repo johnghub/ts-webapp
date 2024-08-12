@@ -1,3 +1,4 @@
+import { APP_ROUTER_TAG } from "../../common";
 import { getLastPathSegment } from "../../common/infrastructure/stringUtils";
 import { LoginDialog } from "./LoginDialog";
 import { RouteElement } from "./routeelement";
@@ -169,8 +170,6 @@ export class Router extends HTMLElement {
     }
   }
 }
-
-const APP_ROUTER_TAG = "app-router";
 
 if (!customElements.get(APP_ROUTER_TAG))
   customElements.define(APP_ROUTER_TAG, Router);

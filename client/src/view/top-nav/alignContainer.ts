@@ -28,5 +28,7 @@ export class AlignContainer
   }
 }
 
-if (!customElements.get("align-container"))
-  customElements.define("align-container", AlignContainer);
+const ALIGN_CONTAINER_TAG = "align-container";
+
+if (!customElements.get(ALIGN_CONTAINER_TAG))
+  customElements.define(ALIGN_CONTAINER_TAG, AlignContainer);

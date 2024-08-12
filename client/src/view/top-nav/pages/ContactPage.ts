@@ -30,6 +30,7 @@ export default class ContactPage
   }
 }
 
+const CONTACT_PAGE_TAG = "contact-page";
 // Define the custom element
-if (!customElements.get("contact-page"))
-  customElements.define("contact-page", ContactPage);
+if (!customElements.get(CONTACT_PAGE_TAG))
+  customElements.define(CONTACT_PAGE_TAG, ContactPage);

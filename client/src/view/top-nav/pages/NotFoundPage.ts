@@ -32,6 +32,8 @@ export default class NotFoundPage
   }
 }
 
+const NF_PAGE_TAG = "nf-page";
+
 // Define the custom element
-if (!customElements.get("nf-page"))
-  customElements.define("nf-page", NotFoundPage);
+if (!customElements.get(NF_PAGE_TAG))
+  customElements.define(NF_PAGE_TAG, NotFoundPage);

@@ -21,5 +21,7 @@ export class Footer
   }
 }
 
-if (!customElements.get("site-footer"))
-  customElements.define("site-footer", Footer);
+const SITE_FOOTER_TAG = "site-footer";
+
+if (!customElements.get(SITE_FOOTER_TAG))
+  customElements.define(SITE_FOOTER_TAG, Footer);

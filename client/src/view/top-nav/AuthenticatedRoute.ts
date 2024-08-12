@@ -1,3 +1,5 @@
+/*
+TODO: Delete
 import { RouteElement } from "./routeelement";
 
 interface AuthDetail {
@@ -49,3 +51,4 @@ class AuthenticatedRoute extends RouteElement {
 if (!customElements.get("authenticated-route")) {
   customElements.define("authenticated-route", AuthenticatedRoute);
 }
+*/

@@ -1,3 +1,5 @@
+import { LOGIN_DLG_TAG } from "../../common";
+
 export enum AuthMethod {
   Password = "password",
   Email = "email",
@@ -274,9 +276,6 @@ export class LoginDialog extends HTMLElement {
 // Messages
 export const DLG_LOGIN_SUCCESS_MSG = "login-success";
 export const DLG_LOGIN_FAIL_MSG = "login-fail";
-
-// Tags
-export const LOGIN_DLG_TAG = "login-dialog";
 
 if (!customElements.get(LOGIN_DLG_TAG)) {
   customElements.define(LOGIN_DLG_TAG, LoginDialog);

@@ -46,6 +46,9 @@ export default class UserPage
     return true;
   }
 }
+
+const USER_PAGE_TAG = "user-page";
+
 // Define the custom element
-if (!customElements.get("user-page"))
-  customElements.define("user-page", UserPage);
+if (!customElements.get(USER_PAGE_TAG))
+  customElements.define(USER_PAGE_TAG, UserPage);
