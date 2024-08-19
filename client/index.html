@@ -16,7 +16,7 @@
     <!-- TODO: Fix products menu item visibility -->
     <login-dialog id="loginDialog" class="modal"></login-dialog>
     <auth-state-service></auth-state-service>
-    <auth-proxy-service></auth-proxy-service>
+    <!-- <auth-proxy-service></auth-proxy-service> -->
     <nav-bar class="nav">
       <app-router>
         <align-container alignment="left">
@@ -61,11 +61,13 @@
               id="userroute"
               path="/user"
               component="UserPage"
+              data-auth-visible="authenticated"
             ></route-element>
             <route-element
               id="adminroute"
               path="/admin"
               component="AdminPage"
+              data-auth-visible="authenticated"
             ></route-element>
           </auth-container>
         </align-container>

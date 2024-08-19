@@ -1,3 +1,4 @@
+import { AUTH_STATE_SERVICE_TAG } from "../../../common";
 import { IConnectedCallback } from "../../main";
 import { IRenderable } from "../../main";
 
@@ -14,7 +15,12 @@ export default class AdminPage
 
   render(): HTMLElement {
     const page = document.createElement("adminpage");
-    if (this.isAuthenticated) {
+
+    const isAuthenticated = (
+      document.querySelector(AUTH_STATE_SERVICE_TAG) as any
+    ).isAuthenticated();
+
+    if (isAuthenticated) {
       page.innerHTML = `
             <style>
                 .about-page-style {
@@ -40,10 +46,6 @@ export default class AdminPage
             </style>
             <div">Not authenticated for the Admin page</div>`;
     return page;
-  }
-
-  get isAuthenticated(): boolean {
-    return false;
   }
 }
 

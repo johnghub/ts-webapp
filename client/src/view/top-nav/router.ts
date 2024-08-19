@@ -32,6 +32,9 @@ export class Router extends HTMLElement {
     const componentName = route.getAttribute("component");
     if (componentName) {
       const importPath = this.convertPathToDirectory(path, componentName);
+      console.log(
+        `component name: ${componentName}, import path: ${importPath}`
+      );
       this.components[componentName] = () => import(`${importPath}`); //
     }
   }
@@ -127,6 +130,8 @@ export class Router extends HTMLElement {
       }
     }
 
+    // TODO: The logout function should work in a similar way, but just logs out the user, might make sense to load a component to do
+    // it or use the proxy service.
     if (routeElement && routeElement.dataset.action === "open-login-dialog") {
       const loginDialog = document.querySelector("login-dialog") as LoginDialog;
       if (loginDialog) {
@@ -145,7 +150,7 @@ export class Router extends HTMLElement {
       this.updatePageArea(new Component());
       this.updateActiveLink();
     } catch (error) {
-      console.error("Failed to load the component:", error);
+      console.error(`Failed to load the component ${componentName}:`, error);
       // Optionally load a hardcoded error component if the NotFoundPage itself fails
     }
   };

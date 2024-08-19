@@ -1,3 +1,4 @@
+import { ALIGN_CONTAINER_TAG } from "../../common";
 import { IConnectedCallback, IRenderable } from "../main";
 
 export class AlignContainer
@@ -27,8 +28,6 @@ export class AlignContainer
     return div;
   }
 }
-
-const ALIGN_CONTAINER_TAG = "align-container";
 
 if (!customElements.get(ALIGN_CONTAINER_TAG))
   customElements.define(ALIGN_CONTAINER_TAG, AlignContainer);

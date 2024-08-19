@@ -1,11 +1,16 @@
-import { AUTH_STATE_CHANGED_MSG, IConnectedCallback } from "../";
+import { IConnectedCallback } from "../";
 import { IRenderable } from "../";
 import {
+  AUTH_STATE_CHANGED_MSG,
   AUTH_STATE_SERVICE_TAG,
-  capitalizeFirstLetter,
+  AUTH_VIS_ATTR,
   NAV_BAR_TAG,
 } from "../../../common";
-import { normalizePath } from "../../../common/infrastructure/stringUtils";
+
+import {
+  capitalizeFirstLetter,
+  normalizePath,
+} from "../../../common/infrastructure/stringUtils";
 import { RouteElement } from "../../top-nav";
 
 export class NavBar
@@ -31,7 +36,9 @@ export class NavBar
   };
 
   updateVisibility() {
-    const authroutes = document.querySelectorAll(`div[${AUTH_VIS_ATTR}]`);
+    const authroutes = document.querySelectorAll(
+      `div[${AUTH_VIS_ATTR}], a[${AUTH_VIS_ATTR}]`
+    );
     const isAuthenticated = (
       document.querySelector(AUTH_STATE_SERVICE_TAG) as any
     ).isAuthenticated();
@@ -174,7 +181,9 @@ export class NavBar
       dropdown.appendChild(button);
       dropdown.appendChild(dropdownContent);
       dropdown.style.display =
-        authVisible === "anonymous" ? "inline-block" : "none";
+        authVisible === "" || authVisible === "anonymous" // Default to visible
+          ? "inline-block"
+          : "none";
       return dropdown;
     } else {
       // No children, create a simple link
@@ -182,6 +191,13 @@ export class NavBar
       link.href = fullPath; // Use the full path for the href
       link.textContent = name;
       link.dataset.path = fullPath;
+      if (authVisible) {
+        link.setAttribute(AUTH_VIS_ATTR, authVisible);
+      }
+      link.style.display =
+        authVisible === "" || authVisible === "anonymous" // Default to visible
+          ? "inline-block"
+          : "none";
       return link;
     }
   }
@@ -196,8 +212,6 @@ export class NavBar
     return anchor;
   }
 }
-
-const AUTH_VIS_ATTR = "data-auth-visible";
 
 if (!customElements.get(NAV_BAR_TAG))
   customElements.define(NAV_BAR_TAG, NavBar);
