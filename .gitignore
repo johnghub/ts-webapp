@@ -361,3 +361,7 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# npm run build
+# output files 
+server/Web.Api/Web.Api/wwwroot

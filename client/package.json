@@ -1,7 +1,7 @@
 {
-  "name": "miratrack-proto",
+  "name": "ai-proto",
   "version": "1.0.0",
-  "description": "AI generate Miratrack site",
+  "description": "AI generated site",
   "scripts": {
     "test": "jest",
     "dev": "vite",

@@ -6,6 +6,7 @@ export const AUTHENTICATED_ATTR = "authenticated";
 export const AUTH_STATE_CHANGED_MSG = "auth-state-changed";
 export const DLG_LOGIN_FAIL_MSG = "login-failure";
 export const DLG_LOGIN_SUCCESS_MSG = "login-success";
+export const LOGOUT_SUCCESS_MSG = "logout-success";
 
 // TODO: determine if these should be defined with components to force loading of CHEs
 // Tags for custom HTML elements
