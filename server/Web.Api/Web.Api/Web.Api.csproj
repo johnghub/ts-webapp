@@ -14,4 +14,8 @@
     <ProjectReference Include="..\Web.Api.Domain\Web.Api.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="wwwroot\" />
+  </ItemGroup>
+
 </Project>

@@ -1,6 +1,10 @@
 import { APP_ROUTER_TAG } from "../../common";
 import { getLastPathSegment } from "../../common/infrastructure/stringUtils";
 import { LoginDialog } from "./LoginDialog";
+import { AboutPage, AdminPage, AuthWeatherPage, NotFoundPage } from "./pages";
+import ContactPage from "./pages/ContactPage";
+import SkiingPage from "./pages/products/SkiingPage";
+import LogoutPage from "./pages/Profile/LogoutPage";
 import { RouteElement } from "./routeelement";
 
 type ComponentLoaderMap = {
@@ -9,18 +13,51 @@ type ComponentLoaderMap = {
 
 // /top-navigation/router.ts
 export class Router extends HTMLElement {
-  private components: ComponentLoaderMap = {};
+  //  private components: ComponentLoaderMap = {};
+  private imports = {
+    AboutPage: () => import("./pages/AboutPage"),
+    ContactPage: () => import("./pages/ContactPage"),
+    //UserPage: () => import ('./pages/UserPage'),
+    AdminPage: () => import("./pages/AdminPage"),
+    AuthWeatherPage: () => import("./pages/AuthWeatherPage"),
+    HomePage: () => import("./pages/HomePage"),
+    NotFoundPage: () => import("./pages/NotFoundPage"),
+    //ProductsPage: () => import ('./pages/ProductsPage'),
+    SkiingPage: () => import("./pages/products/SkiingPage"),
+    SkatingPage: () => import("./pages/products/SkatingPage"),
+    SwimSuitPage: () => import("./pages/products/SwimSuitPage"),
+    //LoginRegisterPage: () => import ('./pages/Login/LoginRegisterPage'),
+    //LoginPage: () => import ('./pages/Login/Register/LoginPage'),
+    LogoutPage: () => import("./pages/Profile/LogoutPage"),
+    //UserPage: () => import ('./pages/Profile/UserPage')
+  };
+
+  private components: ComponentLoaderMap = {
+    AboutPage: this.imports.AboutPage,
+    AdminPage: this.imports.AdminPage,
+    AuthWeatherPage: this.imports.AuthWeatherPage,
+    ContactPage: this.imports.ContactPage,
+    HomePage: this.imports.HomePage,
+    LogoutPage: this.imports.LogoutPage,
+    SkiingPage: this.imports.SkiingPage,
+    SkatingPage: this.imports.SkatingPage,
+  };
+
+  private modulePaths = "";
 
   constructor() {
     super();
   }
 
+  /*
   initializeComponentMap() {
     const routeElements: NodeListOf<HTMLElement> =
       this.querySelectorAll("route-element");
     routeElements.forEach((element) => {
       this.registerRoute(element);
     });
+
+    console.log(this.modulePaths);
 
     const notFoundName = "NotFoundPage";
     this.components[notFoundName] = () => import(`./pages/${notFoundName}`);
@@ -32,10 +69,13 @@ export class Router extends HTMLElement {
     const componentName = route.getAttribute("component");
     if (componentName) {
       const importPath = this.convertPathToDirectory(path, componentName);
-      console.log(
-        `component name: ${componentName}, import path: ${importPath}`
-      );
-      this.components[componentName] = () => import(`${importPath}`); //
+      // console.log(
+      //   `component name: ${componentName}, import path: ${importPath}`
+      // );
+      const stmt = `${componentName}: () => import ('${importPath}')`;
+      //console.log(stmt);
+      this.modulePaths += `\n${stmt}`;
+      this.components[componentName] = () => import(`${importPath}`);
     }
   }
 
@@ -48,9 +88,9 @@ export class Router extends HTMLElement {
     const fileName = `${componentName}`; // Construct the filename, need the '.ts' extension for Vite static analysis
     return `./pages/${directoryPath ? directoryPath + "/" : ""}${fileName}`;
   }
-
+*/
   connectedCallback() {
-    this.initializeComponentMap();
+    // this.initializeComponentMap();
     if (document.readyState === "complete") {
       this.init();
     } else {

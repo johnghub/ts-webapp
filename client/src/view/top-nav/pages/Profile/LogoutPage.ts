@@ -17,7 +17,7 @@ export default class LogoutPage extends HTMLElement {
 
   handleLogout = async () => {
     try {
-      const response = await fetch("http://localhost:5129/api/auth/logout", {
+      const response = await fetch("https://localhost:7129/api/auth/logout", {
         method: "POST",
       });
       if (response.ok) {

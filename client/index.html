@@ -56,20 +56,24 @@
             path="/contact"
             component="ContactPage"
           ></route-element>
-          <auth-container>
-            <route-element
-              id="userroute"
-              path="/user"
-              component="UserPage"
-              data-auth-visible="authenticated"
-            ></route-element>
-            <route-element
-              id="adminroute"
-              path="/admin"
-              component="AdminPage"
-              data-auth-visible="authenticated"
-            ></route-element>
-          </auth-container>
+          <route-element
+            id="userroute"
+            path="/user"
+            component="UserPage"
+            data-auth-visible="authenticated"
+          ></route-element>
+          <route-element
+            id="adminroute"
+            path="/admin"
+            component="AdminPage"
+            data-auth-visible="authenticated"
+          ></route-element>
+          <route-element
+            id="authweatherroute"
+            path="/authweather"
+            component="AuthWeatherPage"
+            data-auth-visible="authenticated"
+          ></route-element>
         </align-container>
         <align-container alignment="right">
           <route-element

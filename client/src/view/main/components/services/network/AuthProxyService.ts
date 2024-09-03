@@ -14,7 +14,7 @@ export class AuthProxyService extends HTMLElement {
   login(username: string, password: string): void {
     const body = JSON.stringify({ username, password });
 
-    fetch("http://localhost:5129/api/auth/login", {
+    fetch("https://localhost:7129/api/auth/login", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -28,7 +28,7 @@ export class AuthProxyService extends HTMLElement {
 
   // Method to handle logout
   logout = (): void => {
-    fetch("http://localhost:5129/api/auth/logout", {
+    fetch("https://localhost:7129/api/auth/logout", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

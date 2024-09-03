@@ -170,7 +170,7 @@ export class LoginDialog extends HTMLElement {
     });
 
     // POST request to server
-    fetch("http://localhost:5129/api/auth/login", {
+    fetch("https://localhost:7129/api/auth/login", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

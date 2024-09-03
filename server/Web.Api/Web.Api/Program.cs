@@ -45,6 +45,12 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
+// Use CORS with the specified policy
+app.UseCors("DevCorsPolicy");
+
+// Enable serving static files
+app.UseStaticFiles();
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -65,9 +71,6 @@ app.Use(async (context, next) =>
         context.Response.StatusCode = 403;
     }
 });
-
-// Use CORS with the specified policy
-app.UseCors("DevCorsPolicy");
 
 app.MapControllers();
 
