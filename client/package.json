@@ -6,7 +6,7 @@
     "test": "jest",
     "dev": "vite",
     "build": "npm run clean && vite build",
-    "build:copy": "npm run clean:server && npm run copyto:server",
+    "build:copy": "npm run clean:server && npm run build && npm run copyto:server",
     "copyto:server": "copyfiles -u 1 dist/index.html dist/assets/*  ../server/Web.Api/Web.Api/wwwroot",
     "clean:server": "rimraf ../server/Web.Api/Web.Api/wwwroot",
     "clean": "rimraf ./dist",

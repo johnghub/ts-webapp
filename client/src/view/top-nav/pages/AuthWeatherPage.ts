@@ -4,8 +4,9 @@ import { IRenderable } from "../../main";
 
 export default class AuthWeatherPage
   extends HTMLElement
-  implements IRenderable, IConnectedCallback
+  implements IConnectedCallback
 {
+  //IRenderable
   private _weatherData: { condition: string; temperature: string } | null =
     null;
 
@@ -15,7 +16,7 @@ export default class AuthWeatherPage
   }
   connectedCallback(): void {
     this.fetchWeatherData();
-    this.appendChild(this.render());
+    //if (this._weatherData) this.appendChild(this.render());
   }
 
   renderInitial() {
@@ -53,7 +54,7 @@ export default class AuthWeatherPage
     `;
   }
 
-  render(): HTMLElement {
+  render(): void {
     const page = document.createElement("authweatherpage");
 
     const isAuthenticated = (
@@ -61,7 +62,7 @@ export default class AuthWeatherPage
     ).isAuthenticated();
 
     if (isAuthenticated) {
-      page.innerHTML = `
+      this.innerHTML = `
             <style>
                 .about-page-style {
                     display: block;
@@ -71,10 +72,10 @@ export default class AuthWeatherPage
                     font-size: 24px;  // Larger text for visibility
                 }
             </style>
-            <div">This is the weather page requiring authentication</div>`;
-      return page;
-    }
-    page.innerHTML = `
+            <div"><b>Current weather</b>:<p>Condition: ${this._weatherData?.condition}<br />Temperature: ${this._weatherData?.temperature}</p></div>`;
+      //return page;
+    } else
+      this.innerHTML = `
             <style>
                 .about-page-style {
                     display: block;
@@ -85,7 +86,7 @@ export default class AuthWeatherPage
                 }
             </style>
             <div">Not authenticated for the auth weather page</div>`;
-    return page;
+    //return page;
   }
 }
 

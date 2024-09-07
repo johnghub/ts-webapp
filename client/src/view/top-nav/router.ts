@@ -13,21 +13,18 @@ type ComponentLoaderMap = {
 
 // /top-navigation/router.ts
 export class Router extends HTMLElement {
-  //  private components: ComponentLoaderMap = {};
+  //private components: ComponentLoaderMap = {};
+
   private imports = {
     AboutPage: () => import("./pages/AboutPage"),
     ContactPage: () => import("./pages/ContactPage"),
-    //UserPage: () => import ('./pages/UserPage'),
     AdminPage: () => import("./pages/AdminPage"),
     AuthWeatherPage: () => import("./pages/AuthWeatherPage"),
     HomePage: () => import("./pages/HomePage"),
     NotFoundPage: () => import("./pages/NotFoundPage"),
-    //ProductsPage: () => import ('./pages/ProductsPage'),
     SkiingPage: () => import("./pages/products/SkiingPage"),
     SkatingPage: () => import("./pages/products/SkatingPage"),
     SwimSuitPage: () => import("./pages/products/SwimSuitPage"),
-    //LoginRegisterPage: () => import ('./pages/Login/LoginRegisterPage'),
-    //LoginPage: () => import ('./pages/Login/Register/LoginPage'),
     LogoutPage: () => import("./pages/Profile/LogoutPage"),
     //UserPage: () => import ('./pages/Profile/UserPage')
   };
@@ -50,6 +47,8 @@ export class Router extends HTMLElement {
   }
 
   /*
+
+  // Dynamic loading and bundling is a project for another day...
   initializeComponentMap() {
     const routeElements: NodeListOf<HTMLElement> =
       this.querySelectorAll("route-element");
@@ -88,9 +87,9 @@ export class Router extends HTMLElement {
     const fileName = `${componentName}`; // Construct the filename, need the '.ts' extension for Vite static analysis
     return `./pages/${directoryPath ? directoryPath + "/" : ""}${fileName}`;
   }
-*/
+  */
   connectedCallback() {
-    // this.initializeComponentMap();
+    //this.initializeComponentMap();
     if (document.readyState === "complete") {
       this.init();
     } else {
