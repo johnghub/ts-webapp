@@ -1,10 +1,10 @@
 import { APP_ROUTER_TAG } from "../../common";
 import { getLastPathSegment } from "../../common/infrastructure/stringUtils";
 import { LoginDialog } from "./LoginDialog";
-import { AboutPage, AdminPage, AuthWeatherPage, NotFoundPage } from "./pages";
-import ContactPage from "./pages/ContactPage";
-import SkiingPage from "./pages/products/SkiingPage";
-import LogoutPage from "./pages/Profile/LogoutPage";
+// import { AboutPage, AdminPage, AuthWeatherPage, NotFoundPage } from "./pages";
+// import ContactPage from "./pages/ContactPage";
+// import SkiingPage from "./pages/products/SkiingPage";
+// import LogoutPage from "./pages/Profile/LogoutPage";
 import { RouteElement } from "./routeelement";
 
 type ComponentLoaderMap = {
@@ -26,6 +26,7 @@ export class Router extends HTMLElement {
     SkatingPage: () => import("./pages/products/SkatingPage"),
     SwimSuitPage: () => import("./pages/products/SwimSuitPage"),
     LogoutPage: () => import("./pages/Profile/LogoutPage"),
+    WeatherPage: () => import("./pages/WeatherPage"),
     //UserPage: () => import ('./pages/Profile/UserPage')
   };
 
@@ -38,6 +39,7 @@ export class Router extends HTMLElement {
     LogoutPage: this.imports.LogoutPage,
     SkiingPage: this.imports.SkiingPage,
     SkatingPage: this.imports.SkatingPage,
+    WeatherPage: this.imports.WeatherPage,
   };
 
   private modulePaths = "";

@@ -27,7 +27,7 @@ export default class LogoutPage extends HTMLElement {
         );
         // Optionally redirect to homepage or login page
         //window.location.href = "/login";
-        window.location.href = "/";
+        window.location.href = "/index.html";
       } else {
         throw new Error("Logout failed");
       }

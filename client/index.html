@@ -57,11 +57,16 @@
             component="ContactPage"
           ></route-element>
           <route-element
+            id="weatherroute"
+            path="/weather"
+            component="WeatherPage"
+          ></route-element>
+          <!-- <route-element
             id="userroute"
             path="/user"
             component="UserPage"
             data-auth-visible="authenticated"
-          ></route-element>
+          ></route-element> -->
           <route-element
             id="adminroute"
             path="/admin"
@@ -107,11 +112,13 @@
               id="logoutroute"
               path="/logout"
               component="LogoutPage"
+              data-auth-visible="authenticated"
             ></route-element>
             <route-element
               id="profileroute"
               path="/profile"
               component="UserPage"
+              data-auth-visible="authenticated"
             ></route-element>
           </route-element>
         </align-container>

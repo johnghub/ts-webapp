@@ -9,3 +9,4 @@ export { NavBar } from "./NavBar";
 export { PageArea } from "./PageArea";
 export { Footer } from "./Footer";
 export { AuthStateService } from "./services/AuthStateService";
+export { weatherDataManager } from "./services/StateManagerService";
