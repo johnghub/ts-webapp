@@ -1,5 +1,5 @@
 // StateManagerService.ts
-export default class StateManagerService<T> {
+export default class StateManagerService<T extends any[]> {
   private state: T;
   private listeners: Function[] = [];
 
@@ -23,6 +23,16 @@ export default class StateManagerService<T> {
 
   unsubscribe(listener: Function): void {
     this.listeners = this.listeners.filter((l) => l !== listener);
+  }
+
+  filterData(predicate: (item: T[0]) => boolean): void {
+    const filteredState = this.state.filter(predicate) as T;
+    this.setState(filteredState);
+  }
+
+  updateData(updateFunc: (item: T[0], index: number) => T[0]): void {
+    const updatedState = this.state.map(updateFunc) as T;
+    this.setState(updatedState);
   }
 }
 
