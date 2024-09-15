@@ -2,6 +2,8 @@ import { IConnectedCallback, IRenderable } from "../../main";
 import { weatherDataManager } from "../../main/components";
 import { WeatherPageFilterDialog } from "./WeatherPageFilterDialog";
 
+type PredicateFunction = (item: any[], value: string) => boolean;
+
 export default class WeatherTable
   extends HTMLElement
   implements IRenderable, IConnectedCallback
@@ -9,28 +11,32 @@ export default class WeatherTable
   private currentSort = { column: "", asc: true };
   private table: HTMLTableElement;
   private div: HTMLDivElement;
-
-  // Create a mapping from column header text to data keys
-  private keyMap: { [key: string]: string } = {
-    Date: "date",
-    "Temperature (°C)": "temperatureC",
-    "Temperature (°F)": "temperatureF",
-    Summary: "summary",
-  };
+  private headers: NodeListOf<HTMLElement>;
 
   constructor() {
     super();
     this.initTable();
   }
 
+  predicates: Record<string, PredicateFunction> = {
+    date: (item, value) => item.date === value,
+    temperatureC: (item, value) => item.temperatureC < Number(value),
+    temperatureF: (item, value) => item.temperatureF < Number(value),
+    summary: (item, value) => item.summary === value,
+  };
+
   connectedCallback(): void {
     this.fetchAndDisplayWeather();
     weatherDataManager.subscribe(() => this.render());
 
-    //this.table
     this.div
       .querySelector("#filterBtn")!
       .addEventListener("click", () => this.showWeatherPageFilterDialog());
+
+    this.div
+      .querySelector("#resetBtn")!
+      .addEventListener("click", () => this.resetData());
+
     document.addEventListener("apply-filter", (event) =>
       this.handleFilter(event)
     );
@@ -44,6 +50,8 @@ export default class WeatherTable
     document.removeEventListener("apply-filter", (event) =>
       this.handleFilter(event)
     );
+
+    weatherDataManager.cleanup();
   }
 
   showWeatherPageFilterDialog() {
@@ -58,9 +66,27 @@ export default class WeatherTable
   }
 
   handleFilter(event: any) {
+    // Implement your filtering logic here
     const { filterType, filterInput } = event.detail;
     console.log(`Filtering by ${filterType} for value ${filterInput}`);
-    // Implement your filtering logic here
+    //    weatherDataManager.filterData((item) => item.summary === filterInput);
+
+    // Select the appropriate predicate based on filterType
+    const predicate = this.predicates[filterType];
+    if (predicate) {
+      // TODO: Not working for numeric values, probably because they are strings
+      weatherDataManager.filterData((item: any[]) =>
+        predicate(item, filterInput)
+      );
+      console.log(`Filtering by ${filterType} for value ${filterInput}`);
+    } else {
+      console.error(`No predicate found for filter type: ${filterType}`);
+    }
+  }
+
+  resetData() {
+    weatherDataManager.resetFiltersAndSorting();
+    this.clearSortIndicators(this.headers);
   }
 
   async fetchAndDisplayWeather(): Promise<void> {
@@ -80,9 +106,40 @@ export default class WeatherTable
 
   initTable(): void {
     this.div = document.createElement("div");
-    const btn = document.createElement("button");
-    btn.id = "filterBtn";
-    btn.innerText = "Filter";
+    this.div.style.display = "flex";
+    this.div.style.flexDirection = "column"; // Stacks children vertically
+
+    const buttonContainer = document.createElement("div");
+    buttonContainer.style.display = "flex"; // Aligns children (buttons) horizontally
+    buttonContainer.style.justifyContent = "flex-start"; // Aligns buttons to the left
+    buttonContainer.style.marginBottom = "10px"; // Adds space between buttons and table
+
+    // Filter button with funnel icon
+    const filterBtn = document.createElement("button");
+    filterBtn.id = "filterBtn";
+    filterBtn.innerHTML = '<i class="fas fa-filter"></i>'; // Using Font Awesome filter icon
+    filterBtn.style.cursor = "pointer";
+    filterBtn.title = "Filter"; // Tooltip to indicate the action
+    filterBtn.style.flex = "0 0 auto"; // Don't grow or shrink
+    filterBtn.style.padding = "10px 15px"; // Adequate padding for button size
+
+    // Reset button with recycle icon
+    const resetBtn = document.createElement("button");
+    resetBtn.id = "resetBtn";
+    resetBtn.innerHTML = '<i class="fas fa-sync-alt"></i>'; // Using Font Awesome recycle icon
+    resetBtn.style.cursor = "pointer";
+    resetBtn.title = "Reset"; // Tooltip to indicate the action
+    resetBtn.style.flex = "0 0 auto"; // Don't grow or shrink
+    resetBtn.style.padding = "10px 15px"; // Adequate padding for button size
+
+    // Append buttons to the button container
+    buttonContainer.appendChild(filterBtn);
+    buttonContainer.appendChild(resetBtn);
+
+    // Append the button container to the div
+    this.div.appendChild(buttonContainer);
+
+    // Create and setup the table
     this.table = document.createElement("table");
     this.table.innerHTML = `
           <style>
@@ -113,6 +170,17 @@ export default class WeatherTable
                   padding: 5px 10px;
                   font-size: 14px;
               }
+              .weather-table tbody tr {
+                transition: transform 0.3s ease, background-color 0.3s ease;
+              }
+              .weather-table.sorting tbody tr {
+                transform: translateY(20px);
+                opacity: 0.5; /* Slightly fade the rows when sorting */
+              }
+              .weather-table.resetting tbody tr {
+                opacity: 0.2; /* Dim the rows when resetting */
+                transition: opacity 0.5s ease;
+              }
           </style>
           <!-- button id="filterBtn">Filter Data</button -->
           <thead>
@@ -127,8 +195,33 @@ export default class WeatherTable
           </tbody>
       `;
 
-    this.div.appendChild(btn);
+    // Append the table to the div
     this.div.appendChild(this.table);
+
+    // Assuming `this` is an HTMLElement, append the div to it
+    this.appendChild(this.div);
+
+    this.headers = this.table.querySelectorAll("th");
+    this.headers.forEach((header) => {
+      header.addEventListener("click", () => {
+        const type = header.getAttribute("data-type") as string;
+        const column = header.textContent || "";
+        const isAsc =
+          this.currentSort.column === column && this.currentSort.asc;
+        this.currentSort = { column, asc: !isAsc };
+
+        // TODO: Figure out why this has no effect:
+        this.table.classList.add("sorting"); // Add sorting class to trigger animations
+        weatherDataManager.sortData(column, type, !isAsc);
+
+        this.updateSortIndicator(this.headers, header, !isAsc);
+
+        // TODO: Figure out why this has no effect:
+        requestAnimationFrame(() => {
+          this.table.classList.remove("sorting"); // Remove sorting class after reflow
+        });
+      });
+    });
   }
 
   render(): HTMLElement {
@@ -141,28 +234,7 @@ export default class WeatherTable
       console.error("Failed to find tbody element");
     }
 
-    const headers = this.table.querySelectorAll("th");
-    headers.forEach((header) => {
-      header.addEventListener("click", () => {
-        const type = header.getAttribute("data-type") as string;
-        const column = header.textContent || "";
-        const isAsc =
-          this.currentSort.column === column && this.currentSort.asc;
-        this.currentSort = { column, asc: !isAsc };
-
-        this.sortData(weatherData, column, type, !isAsc);
-        const tbody = this.table.querySelector("tbody");
-        if (tbody) {
-          this.populateRows(weatherData, tbody);
-        } else {
-          console.error("Failed to find tbody element");
-        }
-        this.updateSortIndicator(headers, header, !isAsc);
-      });
-    });
-
     this.innerHTML = ""; // Clear existing contents
-    //this.appendChild(this.table); // Append the new table
     this.appendChild(this.div); // Append the new table
     return this.table;
   }
@@ -180,28 +252,9 @@ export default class WeatherTable
     });
   }
 
-  sortData(data: any[], column: string, type: string, asc: boolean): void {
-    // Use the map to get the correct data key
-    const key = this.keyMap[column];
-
-    data.sort((a, b) => {
-      let aValue = a[key];
-      let bValue = b[key];
-
-      if (type === "number") {
-        // Convert to numbers if the type is number
-        aValue = Number(aValue);
-        bValue = Number(bValue);
-      } else if (type === "date") {
-        // Convert to date objects if the type is date
-        aValue = new Date(aValue);
-        bValue = new Date(bValue);
-      }
-
-      // Compare values for sorting
-      if (aValue < bValue) return asc ? -1 : 1;
-      if (aValue > bValue) return asc ? 1 : -1;
-      return 0;
+  clearSortIndicators(headers: NodeListOf<HTMLElement>) {
+    headers.forEach((header) => {
+      header.classList.remove("asc", "desc");
     });
   }
 
@@ -210,10 +263,11 @@ export default class WeatherTable
     activeHeader: HTMLElement,
     asc: boolean
   ): void {
-    headers.forEach((header) => {
-      header.classList.remove("asc", "desc");
-    });
-    activeHeader.classList.add(asc ? "asc" : "desc");
+    this.clearSortIndicators(headers); // Clear all first
+    if (activeHeader) {
+      // Ensure there is an active header to update
+      activeHeader.classList.add(asc ? "asc" : "desc");
+    }
   }
 
   searchColumn(columnKey: string, query: string | [number, number]): void {

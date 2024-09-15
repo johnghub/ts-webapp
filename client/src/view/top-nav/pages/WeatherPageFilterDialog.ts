@@ -22,32 +22,6 @@ export class WeatherPageFilterDialog extends HTMLElement {
     }
   }
 
-  /*
-            <style>
-                #WeatherPageFilterDialog {
-                    display: none;
-                    position: fixed;
-                    left: 0;
-                    top: 0;
-                    width: 100%;
-                    height: 100%;
-                    background: rgba(0, 0, 0, 0.5);
-                    z-index: 1000;
-                }
-                .modal-content {
-                    background: white;
-                    margin: 50px auto;
-                    padding: 20px;
-                    width: 90%;
-                    max-width: 600px;
-                }
-                button {
-                    margin: 10px;
-                }
-            </style>
-
-*/
-
   render() {
     this.innerHTML = `
             <div class="modal">
