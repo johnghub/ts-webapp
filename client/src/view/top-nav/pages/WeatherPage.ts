@@ -1,8 +1,10 @@
-import { IConnectedCallback, IRenderable } from "../../main";
+import { IConnectedCallback, IRenderable, IWeatherData } from "../../main";
 import { weatherDataManager } from "../../main/components";
-import { WeatherPageFilterDialog } from "./WeatherPageFilterDialog";
+import { WeatherPageFilterDialog } from "../dialogs/WeatherPageFilterDialog";
+import { WEATHER_EDIT_MODAL_TAG } from "../../../common";
+import { WeatherPageEditDialog } from "../dialogs/WeatherPageEditDialog";
 
-type PredicateFunction = (item: any[], value: string) => boolean;
+type PredicateFunction = (item: IWeatherData, value: string) => boolean;
 
 export default class WeatherTable
   extends HTMLElement
@@ -19,9 +21,29 @@ export default class WeatherTable
   }
 
   predicates: Record<string, PredicateFunction> = {
-    date: (item, value) => item.date === value,
-    temperatureC: (item, value) => item.temperatureC < Number(value),
-    temperatureF: (item, value) => item.temperatureF < Number(value),
+    date: (item, value) => {
+      // Function to normalize date to YYYY-MM-DD
+      const normalizeDate = (dateString: string): string => {
+        const date = new Date(dateString);
+        if (!isNaN(date.getTime())) {
+          // Successfully created a valid date object
+          return date.toISOString().slice(0, 10); // Extract YYYY-MM-DD part
+        } else {
+          // Handle invalid date string
+          console.error("Invalid date format:", dateString);
+          return ""; // Return an empty string on failure
+        }
+      };
+
+      // Normalize both the item's date and the input value
+      const normalizedItemDate = normalizeDate(item.date);
+      const normalizedInputDate = normalizeDate(value);
+
+      // Compare normalized dates
+      return normalizedItemDate === normalizedInputDate;
+    },
+    temperatureC: (item, value) => item.temperatureC === Number(value),
+    temperatureF: (item, value) => item.temperatureF === Number(value),
     summary: (item, value) => item.summary === value,
   };
 
@@ -37,6 +59,10 @@ export default class WeatherTable
       .querySelector("#resetBtn")!
       .addEventListener("click", () => this.resetData());
 
+    this.div
+      .querySelector("#addBtn")!
+      .addEventListener("click", () => this.showWeatherPageEditDialog(true));
+
     document.addEventListener("apply-filter", (event) =>
       this.handleFilter(event)
     );
@@ -44,14 +70,32 @@ export default class WeatherTable
 
   disconnectedCallback(): void {
     weatherDataManager.unsubscribe(() => this.render());
+
     this.querySelector("#filterBtn")!.removeEventListener("click", () =>
       this.showWeatherPageFilterDialog()
+    );
+    this.querySelector("#resetBtn")!.removeEventListener("click", () =>
+      this.resetData()
+    );
+    this.querySelector("#addBtn")!.removeEventListener("click", () =>
+      this.showWeatherPageEditDialog(true)
     );
     document.removeEventListener("apply-filter", (event) =>
       this.handleFilter(event)
     );
 
     weatherDataManager.cleanup();
+  }
+
+  showWeatherPageEditDialog(addData: boolean) {
+    const weatherPageEditDialog = document.querySelector(
+      WEATHER_EDIT_MODAL_TAG
+    ) as WeatherPageEditDialog;
+    if (weatherPageEditDialog) {
+      weatherPageEditDialog.show(addData);
+    } else {
+      console.error("Edit modal not found!");
+    }
   }
 
   showWeatherPageFilterDialog() {
@@ -75,7 +119,7 @@ export default class WeatherTable
     const predicate = this.predicates[filterType];
     if (predicate) {
       // TODO: Not working for numeric values, probably because they are strings
-      weatherDataManager.filterData((item: any[]) =>
+      weatherDataManager.filterData((item: IWeatherData) =>
         predicate(item, filterInput)
       );
       console.log(`Filtering by ${filterType} for value ${filterInput}`);
@@ -114,6 +158,10 @@ export default class WeatherTable
     buttonContainer.style.justifyContent = "flex-start"; // Aligns buttons to the left
     buttonContainer.style.marginBottom = "10px"; // Adds space between buttons and table
 
+    // Enhanced styling for the button container
+    buttonContainer.style.borderBottom = "1px solid #ccc";
+    buttonContainer.style.paddingBottom = "10px";
+
     // Filter button with funnel icon
     const filterBtn = document.createElement("button");
     filterBtn.id = "filterBtn";
@@ -132,9 +180,18 @@ export default class WeatherTable
     resetBtn.style.flex = "0 0 auto"; // Don't grow or shrink
     resetBtn.style.padding = "10px 15px"; // Adequate padding for button size
 
+    const addButton = document.createElement("button");
+    addButton.id = "addBtn";
+    addButton.innerHTML = '<i class="fas fa-plus"></i>'; // Using Font Awesome plus icon
+    addButton.style.cursor = "pointer";
+    addButton.title = "Add new entry";
+    addButton.style.flex = "0 0 auto";
+    addButton.style.padding = "10px 15px";
+
     // Append buttons to the button container
     buttonContainer.appendChild(filterBtn);
     buttonContainer.appendChild(resetBtn);
+    buttonContainer.appendChild(addButton);
 
     // Append the button container to the div
     this.div.appendChild(buttonContainer);

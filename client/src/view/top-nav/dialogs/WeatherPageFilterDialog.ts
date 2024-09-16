@@ -7,8 +7,10 @@ export class WeatherPageFilterDialog extends HTMLElement {
     this.render();
     const closeBtn = this.querySelector("#closeBtn");
     const applyBtn = this.querySelector("#applyBtn");
-    if (closeBtn && applyBtn) {
+    if (closeBtn) {
       closeBtn.addEventListener("click", () => this.hide());
+    }
+    if (applyBtn) {
       applyBtn.addEventListener("click", () => this.applyFilter());
     }
   }
@@ -16,8 +18,10 @@ export class WeatherPageFilterDialog extends HTMLElement {
   disconnectedCallback() {
     const closeBtn = this.querySelector("#closeBtn");
     const applyBtn = this.querySelector("#applyBtn");
-    if (closeBtn && applyBtn) {
+    if (closeBtn) {
       closeBtn.removeEventListener("click", () => this.hide());
+    }
+    if (applyBtn) {
       applyBtn.removeEventListener("click", () => this.applyFilter());
     }
   }
@@ -46,7 +50,7 @@ export class WeatherPageFilterDialog extends HTMLElement {
     );
   }
 
-  show() {
+  show(): void {
     this.style.display = "flex";
     const modal = this.querySelector(".modal") as HTMLElement;
     if (modal) {

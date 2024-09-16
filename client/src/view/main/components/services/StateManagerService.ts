@@ -63,6 +63,36 @@ export class StateManagerService<T extends any[]> {
     this.listeners.forEach((listener) => listener());
   }
 
+  addData(newItem: T[0]): void {
+    this.fullState = [newItem, ...this.fullState] as T; // Prepend new item to fullState
+    this.viewState = [newItem, ...this.viewState] as T; // Prepend new item to viewState
+
+    if (this.currentSort.column) {
+      // Reapply sorting if there's an active sort
+      this.sortData(
+        this.currentSort.column,
+        this.getType(this.currentSort.column),
+        this.currentSort.asc
+      );
+    } else {
+      // Otherwise, just notify listeners about the update
+      this.notifyListeners();
+    }
+  }
+
+  getType(column: string): string {
+    // Helper function to determine the type based on column name
+    switch (column) {
+      case "Temperature (°C)":
+      case "Temperature (°F)":
+        return "number";
+      case "Date":
+        return "date";
+      default:
+        return "text";
+    }
+  }
+
   sortData(column: string, type: string, asc: boolean): void {
     this.currentSort = { column, asc };
     this.viewState = [...this.fullState].sort((a, b) => {

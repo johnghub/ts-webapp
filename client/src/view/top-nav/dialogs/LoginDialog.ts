@@ -1,4 +1,4 @@
-import { LOGIN_DLG_TAG } from "../../common";
+import { LOGIN_DLG_TAG } from "../../../common";
 
 export enum AuthMethod {
   Password = "password",
