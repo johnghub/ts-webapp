@@ -1,9 +1,10 @@
-import { ADD_WEATHER_DATA_MSG, WEATHER_EDIT_MODAL_TAG } from "../../../common";
+import { WEATHER_EDIT_MODAL_TAG } from "../../../common";
 import { weatherDataManager } from "../../main/components";
 
 export class WeatherPageEditDialog extends HTMLElement {
   private form: HTMLFormElement;
   private cancelBtn: HTMLButtonElement;
+  private isAdding: boolean = true; // True if adding, false if editing
 
   constructor() {
     super();
@@ -22,10 +23,19 @@ export class WeatherPageEditDialog extends HTMLElement {
     }
     this.style.display = "none"; // Initially hidden
 
-    this.form = this.querySelector("form"); // Ensure this selector matches your form
+    this.form = this.querySelector("form")!; // Ensure this selector matches your form
     if (this.form) {
       this.form.addEventListener("submit", (e) => this.submitForm(e)); // Attach the submitForm method
     }
+
+    this.querySelector<HTMLInputElement>("#temperatureC")?.addEventListener(
+      "input",
+      this.convertToFahrenheit
+    );
+    this.querySelector<HTMLInputElement>("#temperatureF")?.addEventListener(
+      "input",
+      this.convertToCelsius
+    );
   }
 
   disconnectedCallback() {
@@ -41,7 +51,51 @@ export class WeatherPageEditDialog extends HTMLElement {
     if (this.form) {
       this.form.removeEventListener("submit", this.submitForm);
     }
+
+    this.querySelector<HTMLInputElement>("#temperatureC")?.removeEventListener(
+      "input",
+      this.convertToFahrenheit
+    );
+    this.querySelector<HTMLInputElement>("#temperatureF")?.removeEventListener(
+      "input",
+      this.convertToCelsius
+    );
   }
+
+  // Arrow function to automatically bind `this`
+  convertToFahrenheit = () => {
+    const celsiusInput = this.querySelector<HTMLInputElement>("#temperatureC");
+    const fahrenheitInput =
+      this.querySelector<HTMLInputElement>("#temperatureF");
+
+    // Assuming inputs are always present, no need to check for their existence
+    const celsius = celsiusInput!.valueAsNumber;
+
+    if (!isNaN(celsius)) {
+      // Only check if the input is a valid number
+      const fahrenheit = (celsius * 9) / 5 + 32;
+      fahrenheitInput!.value = fahrenheit.toFixed(1);
+    } else {
+      fahrenheitInput!.value = ""; // Clear if the input is not a valid number
+    }
+  };
+
+  // Arrow function to automatically bind `this`
+  convertToCelsius = () => {
+    const fahrenheitInput =
+      this.querySelector<HTMLInputElement>("#temperatureF");
+    const celsiusInput = this.querySelector<HTMLInputElement>("#temperatureC");
+
+    const fahrenheit = fahrenheitInput!.valueAsNumber;
+
+    if (!isNaN(fahrenheit)) {
+      // Only check if the input is a valid number
+      const celsius = ((fahrenheit - 32) * 5) / 9;
+      celsiusInput!.value = celsius.toFixed(1);
+    } else {
+      celsiusInput!.value = ""; // Clear if the input is not a valid number
+    }
+  };
 
   render() {
     this.innerHTML = `
@@ -112,7 +166,8 @@ export class WeatherPageEditDialog extends HTMLElement {
     this.form = this.querySelector<HTMLFormElement>("#dataForm")!;
   }
 
-  show(addData = false) {
+  show(addData: boolean = false, id?: number) {
+    this.isAdding = addData;
     const banner = this.querySelector("#banner");
     if (banner) {
       banner.innerHTML = `${addData ? "Add" : "Edit"} weather data`;
@@ -128,10 +183,27 @@ export class WeatherPageEditDialog extends HTMLElement {
     } else {
       console.error("Dialog content is null");
     }
+
+    if (id) {
+      weatherDataManager.setCurrentId(id);
+    }
+
+    if (!this.isAdding && id) {
+      const data = weatherDataManager.getDataById(id);
+      this.populateForm(data);
+    }
   }
 
   hide() {
     this.style.display = "none"; // Hide the entire dialog
+  }
+
+  populateForm(data: any) {
+    this.querySelector("#date")!.value = data.date;
+    this.querySelector("#temperatureC")!.value = data.temperatureC;
+    this.querySelector("#temperatureF")!.value = data.temperatureF;
+    this.querySelector("#summary")!.value = data.summary;
+    // Assume other form fields are set here
   }
 
   submitForm(e: Event) {
@@ -144,7 +216,13 @@ export class WeatherPageEditDialog extends HTMLElement {
       summary: formData.get("summary") as string,
     };
     console.log("Submitting data:", data);
-    weatherDataManager.addData(data);
+    if (!this.isAdding) {
+      data.id = weatherDataManager.getCurrentId(); // Get the id for the edit operation
+      weatherDataManager.updateData(data);
+    } else {
+      weatherDataManager.addData(data);
+    }
+
     // Trigger an event or callback to save data
     //this.dispatchEvent(new CustomEvent(ADD_WEATHER_DATA_MSG, { detail: data }));
     this.hide();
@@ -154,29 +232,3 @@ export class WeatherPageEditDialog extends HTMLElement {
 if (!customElements.get(WEATHER_EDIT_MODAL_TAG)) {
   customElements.define(WEATHER_EDIT_MODAL_TAG, WeatherPageEditDialog);
 }
-
-/*
- <style>
-                :host {
-                    display: block;
-                    position: fixed;
-                    top: 20%;
-                    left: 50%;
-                    transform: translateX(-50%);
-                    border: 1px solid #ccc;
-                    background: white;
-                    padding: 20px;
-                    z-index: 1000;
-                }
-                form {
-                    display: flex;
-                    flex-direction: column;
-                }
-                label {
-                    margin-top: 10px;
-                }
-                input, select, button {
-                    margin-top: 5px;
-                }
-            </style>
-*/

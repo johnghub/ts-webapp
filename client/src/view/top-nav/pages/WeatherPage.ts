@@ -87,12 +87,12 @@ export default class WeatherTable
     weatherDataManager.cleanup();
   }
 
-  showWeatherPageEditDialog(addData: boolean) {
+  showWeatherPageEditDialog(addData: boolean, id?: number) {
     const weatherPageEditDialog = document.querySelector(
       WEATHER_EDIT_MODAL_TAG
     ) as WeatherPageEditDialog;
     if (weatherPageEditDialog) {
-      weatherPageEditDialog.show(addData);
+      weatherPageEditDialog.show(addData, id);
     } else {
       console.error("Edit modal not found!");
     }
@@ -193,39 +193,30 @@ export default class WeatherTable
     buttonContainer.appendChild(resetBtn);
     buttonContainer.appendChild(addButton);
 
+    // Add class name for targeting by CSS
+    buttonContainer.className = "button-container";
+
     // Append the button container to the div
     this.div.appendChild(buttonContainer);
 
     // Create and setup the table
     this.table = document.createElement("table");
+    // Add the 'weather-table' class to the table
+    this.table.classList.add("weather-table");
     this.table.innerHTML = `
           <style>
               table {
                   width: 100%;
                   border-collapse: collapse;
               }
-              th, td {
-                  border: 1px solid #ddd;
-                  padding: 8px;
-                  text-align: left;
-              }
-              th {
-                  background-color: #4a90e2;
-                  color: white;
-                  font-size: 16px;
-                  font-weight: bold;
-                  cursor: pointer;
+              .button-container button:not(:last-child) {
+                  margin-right: 10px;  // Adds spacing between buttons, but not after the last button
               }
               .asc::after {
                   content: " \\25B2"; /* Unicode for up triangle */
               }
               .desc::after {
                   content: " \\25BC"; /* Unicode for down triangle */
-              }
-              button {
-                  margin: 10px;
-                  padding: 5px 10px;
-                  font-size: 14px;
               }
               .weather-table tbody tr {
                 transition: transform 0.3s ease, background-color 0.3s ease;
@@ -238,14 +229,42 @@ export default class WeatherTable
                 opacity: 0.2; /* Dim the rows when resetting */
                 transition: opacity 0.5s ease;
               }
+              .weather-table th {
+                  background-color: #4a90e2; /* Header background color */
+                  color: white; /* Text color for headers */
+                  font-size: 16px; /* Size of the font in headers */
+                  font-weight: bold; /* Make header text bold */
+                  text-align: center; /* Horizontally center header text */
+                  vertical-align: middle; /* Vertically center header text */
+                  padding: 8px; /* Padding around text */
+                  border: 1px solid #ddd; /* Border around each header cell */
+              }
+              .weather-table td {
+                  text-align: center; /* Center-aligns all cell content, adjust if necessary */
+                  vertical-align: middle; /* Vertically center content in the cells */
+                  border: 1px solid #ddd;
+              }
+              .weather-table button {
+                  border: none;
+                  background-color: transparent;
+                  cursor: pointer;
+                  color: #4a90e2; /* Match the header color or any theme color */
+                  font-size: 15px; /* Smaller font size for the buttons */
+                  padding: 4px 6px; /* Reduce padding to decrease overall button size */
+                  display: inline-block; /* Ensures padding and margin are respected */
+                  margin: 10px;
+              }
+              .weather-table button:hover {
+                  color: #d33; /* Some contrast color for hover state */
+              }
           </style>
-          <!-- button id="filterBtn">Filter Data</button -->
           <thead>
               <tr>
                   <th data-type="date">Date</th>
                   <th data-type="number">Temperature (°C)</th>
                   <th data-type="number">Temperature (°F)</th>
                   <th data-type="text">Summary</th>
+                  <th>Actions</th>
               </tr>
           </thead>
           <tbody>
@@ -259,25 +278,28 @@ export default class WeatherTable
     this.appendChild(this.div);
 
     this.headers = this.table.querySelectorAll("th");
+    // Only add click event if header has a 'data-type' attribute
     this.headers.forEach((header) => {
-      header.addEventListener("click", () => {
-        const type = header.getAttribute("data-type") as string;
-        const column = header.textContent || "";
-        const isAsc =
-          this.currentSort.column === column && this.currentSort.asc;
-        this.currentSort = { column, asc: !isAsc };
+      if (header.hasAttribute("data-type")) {
+        header.addEventListener("click", () => {
+          const type = header.getAttribute("data-type") as string;
+          const column = header.textContent || "";
+          const isAsc =
+            this.currentSort.column === column && this.currentSort.asc;
+          this.currentSort = { column, asc: !isAsc };
 
-        // TODO: Figure out why this has no effect:
-        this.table.classList.add("sorting"); // Add sorting class to trigger animations
-        weatherDataManager.sortData(column, type, !isAsc);
+          // TODO: Figure out why this has no effect:
+          this.table.classList.add("sorting"); // Add sorting class to trigger animations
+          weatherDataManager.sortData(column, type, !isAsc);
 
-        this.updateSortIndicator(this.headers, header, !isAsc);
+          this.updateSortIndicator(this.headers, header, !isAsc);
 
-        // TODO: Figure out why this has no effect:
-        requestAnimationFrame(() => {
-          this.table.classList.remove("sorting"); // Remove sorting class after reflow
+          // TODO: Figure out why this has no effect:
+          requestAnimationFrame(() => {
+            this.table.classList.remove("sorting"); // Remove sorting class after reflow
+          });
         });
-      });
+      }
     });
   }
 
@@ -300,12 +322,48 @@ export default class WeatherTable
     tbody.innerHTML = ""; // Clear existing rows
     data.forEach((entry) => {
       const row = tbody.insertRow();
-      row.innerHTML = `
-        <td>${entry.date}</td>
-        <td>${entry.temperatureC}</td>
-        <td>${entry.temperatureF}</td>
-        <td>${entry.summary}</td>
-      `;
+
+      // Create and append date cell
+      const dateCell = row.insertCell();
+      dateCell.textContent = entry.date;
+
+      // Create and append temperature in Celsius cell
+      const tempCCell = row.insertCell();
+      tempCCell.textContent = entry.temperatureC;
+
+      // Create and append temperature in Fahrenheit cell
+      const tempFCell = row.insertCell();
+      tempFCell.textContent = entry.temperatureF;
+
+      // Create and append summary cell
+      const summaryCell = row.insertCell();
+      summaryCell.textContent = entry.summary;
+
+      // Create and append actions cell with buttons
+      const actionsCell = row.insertCell();
+
+      // Edit button
+      const editBtn = document.createElement("button");
+      editBtn.className = "edit-btn";
+      editBtn.innerHTML = '<i class="fas fa-edit"></i>';
+
+      const id = entry.id;
+
+      editBtn.addEventListener("click", () => {
+        const entry: any = weatherDataManager
+          .getState()
+          .find((item) => item.id === id);
+
+        this.showWeatherPageEditDialog(false, id);
+      });
+      actionsCell.appendChild(editBtn);
+
+      // Delete button
+      const deleteBtn = document.createElement("button");
+      deleteBtn.className = "delete-btn";
+      deleteBtn.innerHTML = '<i class="fas fa-trash-alt"></i>';
+      deleteBtn.addEventListener("click", () => this.deleteItem(id));
+      actionsCell.appendChild(deleteBtn);
     });
   }
 
@@ -338,13 +396,15 @@ export default class WeatherTable
     weatherDataManager.filterData(predicate);
   }
 
-  editData(index: number, newData: object): void {
-    weatherDataManager.updateData((item, idx) => {
-      if (idx === index) {
-        return { ...item, ...newData };
-      }
-      return item;
-    });
+  // Definitions for editItem and deleteItem functions
+  editItem(id: number) {
+    console.log("Edit item with ID:", id);
+    // Implement the editing logic here
+  }
+
+  deleteItem(id: number) {
+    console.log("Delete item with ID:", id);
+    weatherDataManager.removeData(id);
   }
 }
 

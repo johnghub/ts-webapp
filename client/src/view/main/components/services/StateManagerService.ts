@@ -1,20 +1,29 @@
 // StateManagerService.ts
 
-export class StateManagerService<T extends any[]> {
+interface IIdentifiable {
+  Id: number;
+  [key: string]: string | number | Date; // Assuming all properties are either string or number
+}
+
+export class StateManagerService<T extends IIdentifiable[]> {
   private fullState: T;
   private viewState: T;
   private currentSort: { column: string | null; asc: boolean } = {
     column: null,
     asc: true,
   };
+
   private listeners: Function[] = [];
+
   // Create a mapping from column header text to data keys
-  private keyMap: { [key: string]: string } = {
+  private keyMap: { [key: string]: keyof IIdentifiable } = {
     Date: "date",
     "Temperature (°C)": "temperatureC",
     "Temperature (°F)": "temperatureF",
     Summary: "summary",
   };
+
+  private currentId: number | null = null; // Store the current ID being edited or viewed
 
   constructor(initialState: T) {
     this.fullState = initialState;
@@ -121,6 +130,39 @@ export class StateManagerService<T extends any[]> {
   resetFiltersAndSorting(): void {
     this.currentSort = { column: null, asc: true };
     this.viewState = this.fullState;
+    this.notifyListeners();
+  }
+
+  // Method to get the current ID
+  getCurrentId(): number | null {
+    return this.currentId;
+  }
+
+  // Method to set the current ID
+  setCurrentId(id: number | null): void {
+    this.currentId = id;
+  }
+
+  getDataById(id: number): T[0] | undefined {
+    // Find and return the item with the matching Id
+    return this.fullState.find((item) => item.id === id);
+  }
+
+  updateData(updatedItem: IIdentifiable): void {
+    const index = this.fullState.findIndex(
+      (item) => item.id === updatedItem.id
+    );
+    if (index !== -1) {
+      this.fullState[index] = updatedItem;
+      this.viewState[index] = updatedItem; // Depending on your view logic
+      this.notifyListeners();
+    }
+  }
+
+  removeData(id: number) {
+    // Assuming 'Id' is the property that holds the unique identifier
+    this.fullState = this.fullState.filter((item) => item.id !== id) as T;
+    this.viewState = this.viewState.filter((item) => item.id !== id) as T;
     this.notifyListeners();
   }
 }
