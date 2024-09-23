@@ -11,9 +11,9 @@ export default class WeatherTable
   implements IRenderable, IConnectedCallback
 {
   private currentSort = { column: "", asc: true };
-  private table: HTMLTableElement;
-  private div: HTMLDivElement;
-  private headers: NodeListOf<HTMLElement>;
+  private table: HTMLTableElement | undefined;
+  private div: HTMLDivElement | undefined;
+  private headers!: NodeListOf<HTMLElement>;
 
   constructor() {
     super();
@@ -51,17 +51,17 @@ export default class WeatherTable
     this.fetchAndDisplayWeather();
     weatherDataManager.subscribe(() => this.render());
 
-    this.div
-      .querySelector("#filterBtn")!
-      .addEventListener("click", () => this.showWeatherPageFilterDialog());
+    this.div!.querySelector("#filterBtn")!.addEventListener("click", () =>
+      this.showWeatherPageFilterDialog()
+    );
 
-    this.div
-      .querySelector("#resetBtn")!
-      .addEventListener("click", () => this.resetData());
+    this.div!.querySelector("#resetBtn")!.addEventListener("click", () =>
+      this.resetData()
+    );
 
-    this.div
-      .querySelector("#addBtn")!
-      .addEventListener("click", () => this.showWeatherPageEditDialog(true));
+    this.div!.querySelector("#addBtn")!.addEventListener("click", () =>
+      this.showWeatherPageEditDialog(true)
+    );
 
     document.addEventListener("apply-filter", (event) =>
       this.handleFilter(event)
@@ -113,12 +113,10 @@ export default class WeatherTable
     // Implement your filtering logic here
     const { filterType, filterInput } = event.detail;
     console.log(`Filtering by ${filterType} for value ${filterInput}`);
-    //    weatherDataManager.filterData((item) => item.summary === filterInput);
 
     // Select the appropriate predicate based on filterType
     const predicate = this.predicates[filterType];
     if (predicate) {
-      // TODO: Not working for numeric values, probably because they are strings
       weatherDataManager.filterData((item: IWeatherData) =>
         predicate(item, filterInput)
       );
@@ -289,14 +287,14 @@ export default class WeatherTable
           this.currentSort = { column, asc: !isAsc };
 
           // TODO: Figure out why this has no effect:
-          this.table.classList.add("sorting"); // Add sorting class to trigger animations
+          this.table!.classList.add("sorting"); // Add sorting class to trigger animations
           weatherDataManager.sortData(column, type, !isAsc);
 
           this.updateSortIndicator(this.headers, header, !isAsc);
 
           // TODO: Figure out why this has no effect:
           requestAnimationFrame(() => {
-            this.table.classList.remove("sorting"); // Remove sorting class after reflow
+            this.table!.classList.remove("sorting"); // Remove sorting class after reflow
           });
         });
       }
@@ -306,7 +304,7 @@ export default class WeatherTable
   render(): HTMLElement {
     const weatherData = weatherDataManager.getState(); // Get current state
 
-    const tbody = this.table.querySelector("tbody");
+    const tbody = this.table!.querySelector("tbody");
     if (tbody) {
       this.populateRows(weatherData, tbody);
     } else {
@@ -314,8 +312,8 @@ export default class WeatherTable
     }
 
     this.innerHTML = ""; // Clear existing contents
-    this.appendChild(this.div); // Append the new table
-    return this.table;
+    this.appendChild(this.div!); // Append the new table
+    return this.table!;
   }
 
   populateRows(data: any[], tbody: HTMLTableSectionElement): void {
@@ -394,12 +392,6 @@ export default class WeatherTable
       return item[columnKey] === query; // Handle specific value query
     };
     weatherDataManager.filterData(predicate);
-  }
-
-  // Definitions for editItem and deleteItem functions
-  editItem(id: number) {
-    console.log("Edit item with ID:", id);
-    // Implement the editing logic here
   }
 
   deleteItem(id: number) {

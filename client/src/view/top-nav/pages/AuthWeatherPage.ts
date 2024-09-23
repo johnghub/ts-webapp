@@ -4,9 +4,8 @@ import { IRenderable } from "../../main";
 
 export default class AuthWeatherPage
   extends HTMLElement
-  implements IConnectedCallback
+  implements IConnectedCallback, IRenderable
 {
-  //IRenderable
   private _weatherData: { condition: string; temperature: string } | null =
     null;
 
@@ -14,9 +13,9 @@ export default class AuthWeatherPage
     super();
     this.renderInitial();
   }
-  connectedCallback(): void {
-    this.fetchWeatherData();
-    //if (this._weatherData) this.appendChild(this.render());
+  async connectedCallback(): Promise<void> {
+    await this.fetchWeatherData();
+    this.appendChild(this.render());
   }
 
   renderInitial() {
@@ -38,7 +37,6 @@ export default class AuthWeatherPage
       }
 
       this._weatherData = await response.json();
-      this.render(); // Render the fetched data
     } catch (error: any) {
       console.error("Error fetching weather data:", error);
       this.renderError(error.message);
@@ -54,15 +52,15 @@ export default class AuthWeatherPage
     `;
   }
 
-  render(): void {
+  render(): HTMLElement {
     const page = document.createElement("authweatherpage");
-
     const isAuthenticated = (
       document.querySelector(AUTH_STATE_SERVICE_TAG) as any
     ).isAuthenticated();
 
     if (isAuthenticated) {
-      this.innerHTML = `
+      const page = document.createElement("authweatherpage");
+      page.innerHTML = `
             <style>
                 .about-page-style {
                     display: block;
@@ -73,9 +71,9 @@ export default class AuthWeatherPage
                 }
             </style>
             <div"><b>Current weather</b>:<p>Condition: ${this._weatherData?.condition}<br />Temperature: ${this._weatherData?.temperature}</p></div>`;
-      //return page;
+      return page;
     } else
-      this.innerHTML = `
+      page.innerHTML = `
             <style>
                 .about-page-style {
                     display: block;
@@ -86,7 +84,7 @@ export default class AuthWeatherPage
                 }
             </style>
             <div">Not authenticated for the auth weather page</div>`;
-    //return page;
+    return page;
   }
 }
 

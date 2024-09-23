@@ -7,9 +7,7 @@ export const AUTH_STATE_CHANGED_MSG = "auth-state-changed";
 export const DLG_LOGIN_FAIL_MSG = "login-failure";
 export const DLG_LOGIN_SUCCESS_MSG = "login-success";
 export const LOGOUT_SUCCESS_MSG = "logout-success";
-//export const ADD_WEATHER_DATA_MSG = "add-weather-data";
 
-// TODO: determine if these should be defined with components to force loading of CHEs
 // Tags for custom HTML elements
 export const ALIGN_CONTAINER_TAG = "align-container";
 export const APP_ROUTER_TAG = "app-router";

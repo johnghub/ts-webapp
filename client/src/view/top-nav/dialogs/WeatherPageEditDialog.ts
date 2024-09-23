@@ -74,7 +74,7 @@ export class WeatherPageEditDialog extends HTMLElement {
     if (!isNaN(celsius)) {
       // Only check if the input is a valid number
       const fahrenheit = (celsius * 9) / 5 + 32;
-      fahrenheitInput!.value = fahrenheit.toFixed(1);
+      fahrenheitInput!.value = Math.round(fahrenheit).toString();
     } else {
       fahrenheitInput!.value = ""; // Clear if the input is not a valid number
     }
@@ -91,7 +91,7 @@ export class WeatherPageEditDialog extends HTMLElement {
     if (!isNaN(fahrenheit)) {
       // Only check if the input is a valid number
       const celsius = ((fahrenheit - 32) * 5) / 9;
-      celsiusInput!.value = celsius.toFixed(1);
+      celsiusInput!.value = Math.round(celsius).toString();
     } else {
       celsiusInput!.value = ""; // Clear if the input is not a valid number
     }
@@ -113,9 +113,22 @@ export class WeatherPageEditDialog extends HTMLElement {
                     margin-bottom: 5px; /* Space between label and input within the group */
                 }
                 button[type="submit"], button[type="button"] {
-                    margin-top: 20px;
                     padding: 8px 16px;
                     font-size: 14px;
+                    cursor: pointer;
+                    background-color: #f9f9f9; /* Default light background for all buttons */
+                    border: 1px solid #ccc; /* Default border color */
+                    color: #333; /* Default text color */
+                }
+                .button-group {
+                    display: flex;
+                    justify-content: space-between; /* Aligns buttons to the right; use 'space-between' if needed */
+                    gap: 10px; /* Ensures there is space between buttons */
+                    padding-top: 20px; /* Provides some spacing from the form */
+                }
+                    #cancelBtn {
+                    background-color: silver; /* Specific style for the Cancel button */
+                    color: black; /* Ensures text visibility on silver background */
                 }
             </style>
             <div class="modal">
@@ -129,11 +142,11 @@ export class WeatherPageEditDialog extends HTMLElement {
                     </div>
                     <div class="form-group">
                         <label for="temperatureC">Temperature (°C):</label>
-                        <input type="number" id="temperatureC" name="temperatureC">
+                        <input type="number" id="temperatureC" name="temperatureC" >
                     </div>
                     <div class="form-group">
                         <label for="temperatureF">Temperature (°F):</label>
-                        <input type="number" id="temperatureF" name="temperatureF">
+                        <input type="number" id="temperatureF" name="temperatureF" >
                     </div>
                     <div class="form-group">
                         <label for="summary">Summary:</label>
@@ -150,11 +163,11 @@ export class WeatherPageEditDialog extends HTMLElement {
                             <option value="Warm">Warm</option>
                         </select>
                     </div>
-                    <div style="display: flex; justify-content: space-between;">
-                        <button id="addSaveBtn" type="submit">Add</button>
-                    </div>
                 </form>
-                <button id="cancelBtn">Cancel</button>
+                <div class="button-group">
+                    <button id="addSaveBtn" type="submit" form="dataForm">Add</button>
+                    <button id="cancelBtn">Cancel</button>
+                </div>
                 </div>
             </div>
         `;
@@ -223,8 +236,6 @@ export class WeatherPageEditDialog extends HTMLElement {
       weatherDataManager.addData(data);
     }
 
-    // Trigger an event or callback to save data
-    //this.dispatchEvent(new CustomEvent(ADD_WEATHER_DATA_MSG, { detail: data }));
     this.hide();
   }
 }

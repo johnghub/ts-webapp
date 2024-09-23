@@ -1,6 +1,6 @@
 import { APP_ROUTER_TAG } from "../../common";
 import { getLastPathSegment } from "../../common/infrastructure/stringUtils";
-import { LoginDialog } from "./LoginDialog";
+import { LoginDialog } from "./dialogs/LoginDialog";
 // import { AboutPage, AdminPage, AuthWeatherPage, NotFoundPage } from "./pages";
 // import ContactPage from "./pages/ContactPage";
 // import SkiingPage from "./pages/products/SkiingPage";
