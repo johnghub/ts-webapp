@@ -15,6 +15,10 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
     />
     <link rel="icon" type="image/png" href="/favicon.ico" />
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.js"
+      defer
+    ></script>
   </head>
   <body>
     <!-- TODO: Fix products menu item visibility -->
@@ -22,7 +26,6 @@
     <filter-modal id="WeatherPageFilterDialog"></filter-modal>
     <weather-page-edit-dialog></weather-page-edit-dialog>
     <auth-state-service></auth-state-service>
-    <!-- <auth-proxy-service></auth-proxy-service> -->
     <nav-bar class="nav">
       <app-router>
         <align-container alignment="left">
@@ -66,6 +69,11 @@
             id="weatherroute"
             path="/weather"
             component="WeatherPage"
+          ></route-element>
+          <route-element
+            id="equalizerroute"
+            path="/equalizer"
+            component="EqualizerPage"
           ></route-element>
           <!-- <route-element
             id="userroute"

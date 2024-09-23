@@ -6,7 +6,6 @@ export default class LogoutPage extends HTMLElement {
   }
 
   connectedCallback() {
-    //this.addEventListener("click", this.handleLogout);
     this.appendChild(this.render());
     this.handleLogout();
   }
@@ -26,8 +25,7 @@ export default class LogoutPage extends HTMLElement {
           new CustomEvent(LOGOUT_SUCCESS_MSG, { bubbles: true })
         );
         // Optionally redirect to homepage or login page
-        //window.location.href = "/login";
-        window.location.href = "/index.html";
+        window.location.href = "/";
       } else {
         throw new Error("Logout failed");
       }

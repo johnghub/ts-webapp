@@ -1,6 +1,7 @@
 import { APP_ROUTER_TAG } from "../../common";
 import { getLastPathSegment } from "../../common/infrastructure/stringUtils";
 import { LoginDialog } from "./dialogs/LoginDialog";
+// import { NotFoundPage } from "./pages";
 // import { AboutPage, AdminPage, AuthWeatherPage, NotFoundPage } from "./pages";
 // import ContactPage from "./pages/ContactPage";
 // import SkiingPage from "./pages/products/SkiingPage";
@@ -20,6 +21,7 @@ export class Router extends HTMLElement {
     ContactPage: () => import("./pages/ContactPage"),
     AdminPage: () => import("./pages/AdminPage"),
     AuthWeatherPage: () => import("./pages/AuthWeatherPage"),
+    EqualizerPage: () => import("./pages/EqualizerPage"),
     HomePage: () => import("./pages/HomePage"),
     NotFoundPage: () => import("./pages/NotFoundPage"),
     SkiingPage: () => import("./pages/products/SkiingPage"),
@@ -35,7 +37,9 @@ export class Router extends HTMLElement {
     AdminPage: this.imports.AdminPage,
     AuthWeatherPage: this.imports.AuthWeatherPage,
     ContactPage: this.imports.ContactPage,
+    EqualizerPage: this.imports.EqualizerPage,
     HomePage: this.imports.HomePage,
+    NotFoundPage: this.imports.NotFoundPage,
     LogoutPage: this.imports.LogoutPage,
     SkiingPage: this.imports.SkiingPage,
     SkatingPage: this.imports.SkatingPage,
@@ -157,7 +161,7 @@ export class Router extends HTMLElement {
 
   handleRouteChange = async () => {
     const path = window.location.pathname || "/";
-    const uniquePath: string = getLastPathSegment(path);
+    let uniquePath: string = getLastPathSegment(path);
     const routeElement = this.querySelector(
       `route-element[path="${uniquePath}"]`
     ) as RouteElement;
@@ -171,8 +175,6 @@ export class Router extends HTMLElement {
       }
     }
 
-    // TODO: The logout function should work in a similar way, but just logs out the user, might make sense to load a component to do
-    // it or use the proxy service.
     if (routeElement && routeElement.dataset.action === "open-login-dialog") {
       const loginDialog = document.querySelector("login-dialog") as LoginDialog;
       if (loginDialog) {

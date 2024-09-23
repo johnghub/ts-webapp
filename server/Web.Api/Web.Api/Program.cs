@@ -48,6 +48,13 @@ var app = builder.Build();
 // Use CORS with the specified policy
 app.UseCors("DevCorsPolicy");
 
+// Configure the default file name
+DefaultFilesOptions options = new();
+options.DefaultFileNames.Clear(); // Clear existing default files
+options.DefaultFileNames.Add("index.html"); // Add your default file
+
+app.UseDefaultFiles(options); // Must be called before UseStaticFiles
+
 // Enable serving static files
 app.UseStaticFiles();
 
