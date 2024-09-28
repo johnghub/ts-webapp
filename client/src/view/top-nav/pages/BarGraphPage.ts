@@ -66,16 +66,31 @@ export default class BarGraphPage
     return this.canvas; // Here render returns the canvas as an HTMLElement
   }
 
-  public drawBarGraph(data: number[]): void {
+  public drawBarGraph(data: any): void {
     const width = this.canvas.width;
     const height = this.canvas.height;
     const barWidth = width / data.length;
 
     this.context.clearRect(0, 0, width, height); // Clear the canvas
-    this.context.fillStyle = "#00ff00"; // Bar color
+    //this.context.fillStyle = "#00ff00"; // Bar color
 
-    data.forEach((value, index) => {
-      const barHeight = value * (height / 20); // Scale bar height to canvas height
+    data.forEach((bar: any, index: number) => {
+      const barHeight = bar.value * (height / 20); // Scale bar height to canvas height
+      //console.log(`Bar height: ${bar.value}, color: ${bar.color}`);
+
+      // const gradient = this.context.createLinearGradient(
+      //   index * barWidth,
+      //   height - barHeight,
+      //   index * barWidth,
+      //   height
+      // );
+
+      // gradient.addColorStop(0, bar.startColor);
+      // gradient.addColorStop(1, bar.endColor);
+
+      //this.context.fillStyle = gradient;
+      this.context.fillStyle = bar.color; // Use the color from the data
+
       this.context.fillRect(
         index * barWidth,
         height - barHeight,
