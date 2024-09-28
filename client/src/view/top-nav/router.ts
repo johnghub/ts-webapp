@@ -1,6 +1,7 @@
 import { APP_ROUTER_TAG } from "../../common";
 import { getLastPathSegment } from "../../common/infrastructure/stringUtils";
 import { LoginDialog } from "./dialogs/LoginDialog";
+import BarGraphPage from "./pages/BarGraphPage";
 // import { NotFoundPage } from "./pages";
 // import { AboutPage, AdminPage, AuthWeatherPage, NotFoundPage } from "./pages";
 // import ContactPage from "./pages/ContactPage";
@@ -21,7 +22,7 @@ export class Router extends HTMLElement {
     ContactPage: () => import("./pages/ContactPage"),
     AdminPage: () => import("./pages/AdminPage"),
     AuthWeatherPage: () => import("./pages/AuthWeatherPage"),
-    EqualizerPage: () => import("./pages/EqualizerPage"),
+    BarGraphPage: () => import("./pages/BarGraphPage"),
     HomePage: () => import("./pages/HomePage"),
     NotFoundPage: () => import("./pages/NotFoundPage"),
     SkiingPage: () => import("./pages/products/SkiingPage"),
@@ -37,7 +38,7 @@ export class Router extends HTMLElement {
     AdminPage: this.imports.AdminPage,
     AuthWeatherPage: this.imports.AuthWeatherPage,
     ContactPage: this.imports.ContactPage,
-    EqualizerPage: this.imports.EqualizerPage,
+    BarGraphPage: this.imports.BarGraphPage,
     HomePage: this.imports.HomePage,
     NotFoundPage: this.imports.NotFoundPage,
     LogoutPage: this.imports.LogoutPage,
