@@ -160,8 +160,20 @@ export class Router extends HTMLElement {
     }
   }
 
+  normalizePath(path: string) {
+    // Normalize the path to treat 'index.html' as '/'
+    if (path.endsWith("index.html")) {
+      return "/";
+    }
+    // Remove trailing slash for uniformity except for the root
+    if (path.length > 1 && path.endsWith("/")) {
+      path = path.slice(0, -1);
+    }
+    return path;
+  }
+
   handleRouteChange = async () => {
-    const path = window.location.pathname || "/";
+    const path = this.normalizePath(window.location.pathname);
     let uniquePath: string = getLastPathSegment(path);
     const routeElement = this.querySelector(
       `route-element[path="${uniquePath}"]`

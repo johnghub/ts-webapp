@@ -1,4 +1,3 @@
-// src/components/Footer.ts
 import { IConnectedCallback } from "../";
 import { IRenderable } from "../";
 import { getCurrentYear } from "../../../common";

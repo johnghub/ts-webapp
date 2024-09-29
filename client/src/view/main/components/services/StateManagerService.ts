@@ -1,5 +1,3 @@
-// StateManagerService.ts
-
 interface IIdentifiable {
   Id: number;
   [key: string]: string | number | Date; // Assuming all properties are either string or number

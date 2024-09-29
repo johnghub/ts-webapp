@@ -219,7 +219,7 @@ export class LoginDialog extends HTMLElement {
         this.displayError(error.message);
       });
 
-    /*
+    /* TODO: Cleanup
     const mockSuccess: boolean = true;
     if (mockSuccess)
       // Mocking a successful login response

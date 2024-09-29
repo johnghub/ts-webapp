@@ -10,6 +10,7 @@ export default class BarGraphPage
   private context: CanvasRenderingContext2D;
   private data: number[] = [5, 10, 15, 10, 5];
   private connection: signalR.HubConnection;
+  private maxOffset = 15; // Max pixel offset for the center
 
   constructor() {
     super();
@@ -50,8 +51,12 @@ export default class BarGraphPage
       .configureLogging(signalR.LogLevel.Debug)
       .build();
 
-    this.connection.on("ReceiveGraphData", (data: number[]) => {
-      this.updateData(data);
+    // this.connection.on("ReceiveGraphData", (data: number[]) => {
+    //   this.updateData(data);
+    // });
+
+    this.connection.on("ReceiveLineData", (lineData: any) => {
+      this.drawLine(lineData);
     });
 
     try {
@@ -66,13 +71,29 @@ export default class BarGraphPage
     return this.canvas; // Here render returns the canvas as an HTMLElement
   }
 
+  drawLine(lineData: any) {
+    const offsetX =
+      Math.floor(Math.random() * (2 * this.maxOffset + 1)) - this.maxOffset;
+    const offsetY =
+      Math.floor(Math.random() * (2 * this.maxOffset + 1)) - this.maxOffset;
+    const centerX = this.canvas.width / 2 + offsetX;
+    const centerY = this.canvas.height / 2 + offsetY;
+    const endX = centerX + lineData.length * Math.cos(lineData.angle);
+    const endY = centerY + lineData.length * Math.sin(lineData.angle);
+
+    this.context.beginPath();
+    this.context.moveTo(centerX, centerY);
+    this.context.lineTo(endX, endY);
+    this.context.strokeStyle = lineData.color;
+    this.context.stroke();
+  }
+
   public drawBarGraph(data: any): void {
     const width = this.canvas.width;
     const height = this.canvas.height;
     const barWidth = width / data.length;
 
     this.context.clearRect(0, 0, width, height); // Clear the canvas
-    //this.context.fillStyle = "#00ff00"; // Bar color
 
     data.forEach((bar: any, index: number) => {
       const barHeight = bar.value * (height / 20); // Scale bar height to canvas height
@@ -100,8 +121,10 @@ export default class BarGraphPage
     });
   }
 
-  public updateData(newData: number[]): HTMLElement {
-    this.drawBarGraph(newData);
+  //public updateData(newData: number[]): HTMLElement {
+  public updateData(newData: any): HTMLElement {
+    //this.drawBarGraph(newData);
+    this.drawLine(newData);
     return this.render(); // Optionally re-render or update the canvas
   }
 }

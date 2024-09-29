@@ -1,4 +1,3 @@
-//import { AUTH_STATE_SERVICE_TAG } from "../../../../common";
 import {
   AUTH_STATE_CHANGED_MSG,
   AUTH_STATE_SERVICE_TAG,
@@ -14,7 +13,6 @@ export class AuthStateService extends ServiceBase implements IAuthStateService {
 
   connectedCallback(): void {
     document.addEventListener("login-success", this.handleLoginSuccess);
-    //this.render();
   }
 
   handleLoginSuccess = (event: CustomEvent): void => {
@@ -36,10 +34,6 @@ export class AuthStateService extends ServiceBase implements IAuthStateService {
     );
   }
 
-  // render() {
-  //   this.innerHTML = "<div><h1>auth state service</h1></div>";
-  // }
-
   isAuthenticated = (): boolean => {
     return this._authState.isAuthenticated;
   };
@@ -56,9 +50,6 @@ export class AuthStateService extends ServiceBase implements IAuthStateService {
 export interface IAuthStateService {
   isAuthenticated(): boolean;
 }
-
-// Messages
-//export const AUTH_STATE_CHANGED_MSG = "auth-state-changed";
 
 if (!customElements.get(AUTH_STATE_SERVICE_TAG))
   customElements.define(AUTH_STATE_SERVICE_TAG, AuthStateService);

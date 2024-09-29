@@ -1,7 +1,5 @@
 ﻿using Microsoft.AspNetCore.SignalR;
-using System;
 using Web.Api.SignalR.Models;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Web.Api.SignalR
 {
@@ -9,7 +7,75 @@ namespace Web.Api.SignalR
     {
         private readonly Random _random = new ();
 
-#if (false)
+        private readonly int numberOfBars = 10;
+        private int[] baseValues; // Base values for the bars
+        private int[] colorOffsets; // To hold color offsets
+
+        public GraphHub()
+        {
+            // Initialize base values and color offsets
+            //baseValues = Enumerable.Range(1, numberOfBars).Select(x => _random.Next(10, 36)).ToArray();
+            //colorOffsets = Enumerable.Range(1, numberOfBars).Select(x => _random.Next(0, 256)).ToArray();
+        }
+
+#if true
+
+        public async Task SendLineData(int totalLines)
+        {
+            while (true)
+            {
+                for (int i = 0; i < totalLines; i++)
+                {
+                    var lineData = new LineData
+                    {
+                        Length = _random.Next(50, 351), // Random length between 50 and 150
+                        Angle = 2 * Math.PI * i / totalLines, // Evenly spaced angles
+                        Color = $"#{_random.Next(0x1000000):X6}" // Random color
+                    };
+
+                    await Clients.All.SendAsync("ReceiveLineData", lineData);
+                    await Task.Delay(100); // Delay to space out the line drawings
+                }
+            }
+        }
+#endif
+
+
+#if false
+        public async Task BroadcastGraphData()
+        {
+            var data = new List<BarData>();
+            while (true)
+            {
+                // Increment color offsets slightly on each broadcast
+                colorOffsets = colorOffsets.Select(x => (x + 5) % 256).ToArray();
+
+                for (int i = 0; i < numberOfBars; i++)
+                {
+                    double angle = 2 * Math.PI * i / numberOfBars;
+                    int waveValue = (int)(baseValues[i] + 20 * Math.Sin(angle + DateTime.UtcNow.Ticks / 1e+7)); // subtle wave pattern
+
+                    // Generate a smooth gradient over time
+                    int red = (colorOffsets[i] + 30) % 256;
+                    int green = (colorOffsets[i] + 80) % 256;
+                    int blue = (colorOffsets[i] + 130) % 256;
+
+                    data.Add(new BarData
+                    {
+                        Value = waveValue,
+                        Color = $"#{red:X2}{green:X2}{blue:X2}"
+                    });
+                }
+
+                await Clients.All.SendAsync("ReceiveGraphData", data);
+
+                await Task.Delay(1000);
+
+            }
+        }
+#endif
+
+#if false
         public async Task BroadcastGraphData()
         {
             while (true)
@@ -33,11 +99,13 @@ namespace Web.Api.SignalR
                 await Task.Delay(1000);
             }
         }
-#else
+#endif
+
+#if false
         public async Task BroadcastGraphData()
         {
 
-            int numberOfBars = 50;
+            int numberOfBars = 100;
 
 
             while (true)
@@ -84,7 +152,8 @@ namespace Web.Api.SignalR
         public override async Task OnConnectedAsync()
         {
             await base.OnConnectedAsync();
-            await BroadcastGraphData();
+            //await BroadcastGraphData();
+            await SendLineData(100);
         }
 
     }

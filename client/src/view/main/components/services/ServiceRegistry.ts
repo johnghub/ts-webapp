@@ -1,3 +1,4 @@
+// TODO: Delete?
 export class ServiceRegistry extends HTMLElement {
   private static services: Map<string, Promise<any>> = new Map();
 
