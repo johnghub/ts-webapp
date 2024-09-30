@@ -2,11 +2,17 @@
 export const AUTH_VIS_ATTR = "data-auth-visible";
 export const AUTHENTICATED_ATTR = "authenticated";
 
+// Auth services
+export const AUTH_PROXY_TAG = "auth-proxy-service";
+
 // Events
 export const AUTH_STATE_CHANGED_MSG = "auth-state-changed";
-export const DLG_LOGIN_FAIL_MSG = "login-failure";
-export const DLG_LOGIN_SUCCESS_MSG = "login-success";
+//export const DLG_LOGIN_FAIL_MSG = "login-failure";
+//export const DLG_LOGIN_SUCCESS_MSG = "login-success";
 export const LOGOUT_SUCCESS_MSG = "logout-success";
+export const LOGOUT_FAILURE_MSG = "logout-failure";
+export const LOGIN_SUCCESS_MSG = "login-success";
+export const LOGIN_FAILURE_MSG = "login-failure";
 
 // Tags for custom HTML elements
 export const ALIGN_CONTAINER_TAG = "align-container";

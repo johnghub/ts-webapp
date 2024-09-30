@@ -1,6 +1,8 @@
 import {
   AUTH_STATE_CHANGED_MSG,
   AUTH_STATE_SERVICE_TAG,
+  LOGIN_SUCCESS_MSG,
+  LOGOUT_SUCCESS_MSG,
 } from "../../../../common";
 import { ServiceBase } from "./ServiceBase";
 
@@ -12,11 +14,21 @@ export class AuthStateService extends ServiceBase implements IAuthStateService {
   }
 
   connectedCallback(): void {
-    document.addEventListener("login-success", this.handleLoginSuccess);
+    document.addEventListener(LOGIN_SUCCESS_MSG, this.handleLoginSuccess);
+    document.addEventListener(LOGOUT_SUCCESS_MSG, this.handleLogoutSuccess);
+  }
+
+  disconnectedCallback(): void {
+    document.removeEventListener(LOGIN_SUCCESS_MSG, this.handleLoginSuccess);
+    document.removeEventListener(LOGOUT_SUCCESS_MSG, this.handleLogoutSuccess);
   }
 
   handleLoginSuccess = (event: CustomEvent): void => {
     this.updateAuthState(event.detail.isAuthenticated);
+  };
+
+  handleLogoutSuccess = (event: CustomEvent): void => {
+    this.updateAuthState(false);
   };
 
   updateAuthState(isAuthenticated: boolean): void {
@@ -37,10 +49,6 @@ export class AuthStateService extends ServiceBase implements IAuthStateService {
   isAuthenticated = (): boolean => {
     return this._authState.isAuthenticated;
   };
-
-  disconnectedCallback(): void {
-    document.removeEventListener("login-success", this.handleLoginSuccess);
-  }
 
   static get tagName(): string {
     return AUTH_STATE_SERVICE_TAG;

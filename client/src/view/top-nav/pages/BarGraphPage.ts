@@ -51,12 +51,8 @@ export default class BarGraphPage
       .configureLogging(signalR.LogLevel.Debug)
       .build();
 
-    // this.connection.on("ReceiveGraphData", (data: number[]) => {
-    //   this.updateData(data);
-    // });
-
-    this.connection.on("ReceiveLineData", (lineData: any) => {
-      this.drawLine(lineData);
+    this.connection.on("ReceiveGraphData", (data: number[]) => {
+      this.updateData(data);
     });
 
     try {

@@ -1,4 +1,9 @@
-import { LOGIN_DLG_TAG } from "../../../common";
+import {
+  AUTH_PROXY_TAG,
+  LOGIN_DLG_TAG,
+  LOGIN_SUCCESS_MSG,
+} from "../../../common";
+import { AuthProxyService } from "../../main/components/services/network/AuthProxyService";
 
 export enum AuthMethod {
   Password = "password",
@@ -20,7 +25,12 @@ export class LoginDialog extends HTMLElement {
   }
 
   connectedCallback() {
+    document.addEventListener(LOGIN_SUCCESS_MSG, this.hide);
     this.render();
+  }
+
+  disconnectedCallback(): void {
+    document.removeEventListener(LOGIN_SUCCESS_MSG, this.hide);
   }
 
   attributeChangedCallback(name: string, oldValue: string, newValue: string) {
@@ -30,7 +40,7 @@ export class LoginDialog extends HTMLElement {
     }
   }
 
-  show() {
+  show = () => {
     this.style.display = "flex"; // Make sure this controls the visibility appropriately
 
     const modal = this.querySelector(".modal") as HTMLElement | null;
@@ -39,13 +49,11 @@ export class LoginDialog extends HTMLElement {
     } else {
       console.error("The modal element does not exist!");
     }
+  };
 
-    this.style.display = "block"; // Make sure this controls the visibility appropriately
-  }
-
-  hide() {
+  hide = () => {
     this.style.display = "none";
-  }
+  };
 
   displayError(message: string) {
     const errorMessage = this.querySelector(".error-message") as HTMLElement;
@@ -169,55 +177,12 @@ export class LoginDialog extends HTMLElement {
       password: jsonData.password,
     });
 
-    // POST request to server
-    fetch("https://localhost:7129/api/auth/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: body,
-    })
-      .then((response) => {
-        if (!response.ok) {
-          // If response not ok, throw an error to be caught later
-          throw new Error("Network response was not ok");
-        }
-        return response.json(); // Parse JSON response
-      })
-      .then((data) => {
-        console.log("Success:", data);
-        // Dispatch success event if login successful
-        if (data.success) {
-          this.dispatchEvent(
-            new CustomEvent(DLG_LOGIN_SUCCESS_MSG, {
-              detail: {
-                user: data.user,
-                isAuthenticated: true,
-              },
-              bubbles: true,
-              composed: true,
-            })
-          );
-          this.hide(); // Hide the dialog on successful login
-        } else {
-          // If login not successful, dispatch 'auth-change' with failure details
-          this.dispatchEvent(
-            new CustomEvent(DLG_LOGIN_FAIL_MSG, {
-              detail: {
-                isAuthenticated: false,
-                user: null,
-              },
-              bubbles: true,
-              composed: true,
-            })
-          );
-        }
-      })
-      .catch((error) => {
-        console.error("Error:", error.message);
-        // Display error message
-        this.displayError(error.message);
-      });
+    const authProxy = document.querySelector(
+      AUTH_PROXY_TAG
+    ) as AuthProxyService;
+    if (authProxy) {
+      authProxy.formLogin(body); // Assuming login-dialog has a show method
+    }
 
     /* TODO: Cleanup
     const mockSuccess: boolean = true;
@@ -252,30 +217,12 @@ export class LoginDialog extends HTMLElement {
         }
       }, 1000);
 */
-
-    // fetch("/login", {
-    //   method: "POST",
-    //   headers: {
-    //     "Content-Type": "application/json",
-    //   },
-    //   body: JSON.stringify(jsonData),
-    // })
-    //   .then((response) => response.json())
-    //   .then((data) => {
-    //     console.log("Success:", data);
-    //     this.dispatchEvent(new CustomEvent("auth-change", { detail: data }));
-    //   })
-    //   .catch((error) => {
-    //     console.error("Error:", error);
-    //   });
-
-    // this.hide();
   }
 }
 
 // Messages
-export const DLG_LOGIN_SUCCESS_MSG = "login-success";
-export const DLG_LOGIN_FAIL_MSG = "login-fail";
+// export const DLG_LOGIN_SUCCESS_MSG = "login-success";
+// export const DLG_LOGIN_FAIL_MSG = "login-fail";
 
 if (!customElements.get(LOGIN_DLG_TAG)) {
   customElements.define(LOGIN_DLG_TAG, LoginDialog);

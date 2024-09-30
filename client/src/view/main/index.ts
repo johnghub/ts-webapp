@@ -6,3 +6,4 @@ export * from "./models/IWeatherData";
 
 // Optionally export them if they need to be used elsewhere
 export { AuthStateService } from "./components/services/AuthStateService";
+//export { AuthProxyService } from "./components/services/network/AuthProxyService";

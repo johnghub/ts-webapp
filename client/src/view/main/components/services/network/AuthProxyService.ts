@@ -1,3 +1,11 @@
+import {
+  AUTH_PROXY_TAG,
+  LOGIN_FAILURE_MSG,
+  LOGIN_SUCCESS_MSG,
+  LOGOUT_FAILURE_MSG,
+  LOGOUT_SUCCESS_MSG,
+} from "../../../../../common";
+
 // Define the types for user data and event details
 interface UserData {
   user: string | null;
@@ -6,14 +14,13 @@ interface UserData {
 
 interface AuthEventDetail extends UserData {
   error?: string;
+  success: boolean;
 }
 
 // Define the class for the AuthProxyService
 export class AuthProxyService extends HTMLElement {
   // Method to handle login
-  login(username: string, password: string): void {
-    const body = JSON.stringify({ username, password });
-
+  formLogin(body: string): void {
     fetch("https://localhost:7129/api/auth/login", {
       method: "POST",
       headers: {
@@ -21,8 +28,8 @@ export class AuthProxyService extends HTMLElement {
       },
       body: body,
     })
-      .then((response) => this.handleResponse(response))
-      .then((data) => this.processLogin(data as UserData))
+      .then((response) => this.handleLoginResponse(response))
+      .then((data) => this.processLogin(data as AuthEventDetail))
       .catch((error) => this.handleError(error, LOGIN_FAILURE_MSG));
   }
 
@@ -34,38 +41,41 @@ export class AuthProxyService extends HTMLElement {
         "Content-Type": "application/json",
       },
     })
-      .then((response) => this.handleResponse(response))
-      .then((data) => this.processLogout(data as UserData))
+      .then((response) => this.handleLogoutResponse(response))
       .catch((error) => this.handleError(error, LOGOUT_FAILURE_MSG));
   };
 
   // Handle network responses
-  private handleResponse = (response: Response): Promise<UserData> => {
+  private handleLoginResponse = (response: Response): Promise<UserData> => {
     if (!response.ok) {
       throw new Error("Network response was not ok");
     }
     return response.json();
   };
 
-  // Handle successful login
-  private processLogin = (data: UserData): void => {
-    const eventDetail: AuthEventDetail = {
-      user: data.user,
-      isAuthenticated: data.isAuthenticated,
-    };
+  private handleLogoutResponse = (response: Response): void => {
+    if (!response.ok) {
+      throw new Error("Network response was not ok");
+    }
+    this.processLogout();
+  };
 
-    if (data.isAuthenticated) {
+  // Handle successful login
+  private processLogin = (data: AuthEventDetail): void => {
+    if (data.success) {
+      data.isAuthenticated = true;
       this.dispatchEvent(
         new CustomEvent<AuthEventDetail>(LOGIN_SUCCESS_MSG, {
-          detail: eventDetail,
+          detail: data, //eventDetail,
           bubbles: true,
           composed: true,
         })
       );
     } else {
+      data.isAuthenticated = false;
       this.dispatchEvent(
         new CustomEvent<AuthEventDetail>(LOGIN_FAILURE_MSG, {
-          detail: eventDetail,
+          detail: data, //1eventDetail,
           bubbles: true,
           composed: true,
         })
@@ -74,29 +84,12 @@ export class AuthProxyService extends HTMLElement {
   };
 
   // Handle successful logout
-  private processLogout = (data: UserData): void => {
-    const eventDetail: AuthEventDetail = {
-      user: null,
-      isAuthenticated: data.isAuthenticated,
-    };
-
-    if (data.isAuthenticated) {
-      this.dispatchEvent(
-        new CustomEvent<AuthEventDetail>(LOGOUT_SUCCESS_MSG, {
-          detail: eventDetail,
-          bubbles: true,
-          composed: true,
-        })
-      );
-    } else {
-      this.dispatchEvent(
-        new CustomEvent<AuthEventDetail>(LOGOUT_FAILURE_MSG, {
-          detail: eventDetail,
-          bubbles: true,
-          composed: true,
-        })
-      );
-    }
+  private processLogout = (): void => {
+    this.dispatchEvent(
+      new CustomEvent<AuthEventDetail>(LOGOUT_SUCCESS_MSG, {
+        bubbles: true,
+      })
+    );
   };
 
   // Handle errors
@@ -111,13 +104,6 @@ export class AuthProxyService extends HTMLElement {
     );
   };
 }
-
-// Constants for event names and element tag
-const LOGIN_SUCCESS_MSG = "login-success";
-const LOGIN_FAILURE_MSG = "login-failure";
-const LOGOUT_SUCCESS_MSG = "logout-success";
-const LOGOUT_FAILURE_MSG = "logout-failure";
-const AUTH_PROXY_TAG = "auth-proxy-service";
 
 // Ensure the custom element is defined only once
 if (!customElements.get(AUTH_PROXY_TAG)) {

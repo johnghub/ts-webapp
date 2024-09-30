@@ -11,7 +11,7 @@ namespace Web.Api.Controllers.Public
     [ApiController]
     public class AuthController : PublicController
     {
-        [HttpPost("login")]
+        [HttpPost("login", Name = "login")]
         public async Task<IActionResult> Login([FromBody] UserCredentials credentials)
         {
             // Here, implement your user validation logic
@@ -24,20 +24,16 @@ namespace Web.Api.Controllers.Public
                 new (ClaimTypes.Name, credentials.Username)
             };
 
-            //var identity = new ClaimsIdentity(claims, "CookieAuth");
             var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
             var principal = new ClaimsPrincipal(identity);
 
-            //await HttpContext.SignInAsync("CookieAuth", principal);
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
 
             return Ok(new { success = true, message = "Login successful", user = new { name = "Test User" } } ); 
-        
 
-            //return NoContent();
         }
 
-        [HttpPost("logout")]
+        [HttpPost("logout", Name="logout")]
         public async Task<IActionResult> Logout()
         {
             //await HttpContext.SignOutAsync("CookieAuth");

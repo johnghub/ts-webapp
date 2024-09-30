@@ -1,4 +1,5 @@
-import { LOGOUT_SUCCESS_MSG } from "../../../../common";
+import { AUTH_PROXY_TAG, LOGOUT_SUCCESS_MSG } from "../../../../common";
+import { AuthProxyService } from "../../../main/components";
 
 export default class LogoutPage extends HTMLElement {
   constructor() {
@@ -6,34 +7,27 @@ export default class LogoutPage extends HTMLElement {
   }
 
   connectedCallback() {
+    document.addEventListener(LOGOUT_SUCCESS_MSG, this.processLogout);
     this.appendChild(this.render());
     this.handleLogout();
   }
 
   disconnectedCallback() {
-    //document.removeEventListener("click", this.handleLogout);
+    document.removeEventListener(LOGOUT_SUCCESS_MSG, this.processLogout);
   }
 
-  handleLogout = async () => {
-    try {
-      const response = await fetch("https://localhost:7129/api/auth/logout", {
-        method: "POST",
-      });
-      if (response.ok) {
-        // Successfully logged out
-        this.dispatchEvent(
-          new CustomEvent(LOGOUT_SUCCESS_MSG, { bubbles: true })
-        );
-        // Optionally redirect to homepage or login page
-        window.location.href = "/";
-      } else {
-        throw new Error("Logout failed");
-      }
-    } catch (error) {
-      console.error("Error during logout:", error);
-      this.dispatchEvent(new CustomEvent("logout-failed", { bubbles: true }));
+  handleLogout = () => {
+    const authProxy = document.querySelector(
+      AUTH_PROXY_TAG
+    ) as AuthProxyService;
+    if (authProxy) {
+      authProxy.logout();
     }
   };
+
+  processLogout() {
+    window.location.href = "/";
+  }
 
   render(): HTMLElement {
     const page = document.createElement("logoutpage");

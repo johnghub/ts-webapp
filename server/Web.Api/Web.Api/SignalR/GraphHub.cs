@@ -8,6 +8,7 @@ namespace Web.Api.SignalR
         private readonly Random _random = new ();
 
         private readonly int numberOfBars = 10;
+        private readonly int _totalLines = 100;
         private int[] baseValues; // Base values for the bars
         private int[] colorOffsets; // To hold color offsets
 
@@ -20,20 +21,20 @@ namespace Web.Api.SignalR
 
 #if true
 
-        public async Task SendLineData(int totalLines)
+        public async Task BroadcastGraphData()
         {
             while (true)
             {
-                for (int i = 0; i < totalLines; i++)
+                for (int i = 0; i < _totalLines; i++)
                 {
                     var lineData = new LineData
                     {
                         Length = _random.Next(50, 351), // Random length between 50 and 150
-                        Angle = 2 * Math.PI * i / totalLines, // Evenly spaced angles
+                        Angle = 2 * Math.PI * i / _totalLines, // Evenly spaced angles
                         Color = $"#{_random.Next(0x1000000):X6}" // Random color
                     };
 
-                    await Clients.All.SendAsync("ReceiveLineData", lineData);
+                    await Clients.All.SendAsync("ReceiveGraphData", lineData);
                     await Task.Delay(100); // Delay to space out the line drawings
                 }
             }
@@ -143,8 +144,6 @@ namespace Web.Api.SignalR
 
                 // Wait for 500 milliseconds
                 await Task.Delay(1000);
-                //await Task.Delay(5000);
-                //Console.WriteLine($"Sent data: {DateTime.Now.ToLongTimeString()}");
             }
         }
 
@@ -152,8 +151,7 @@ namespace Web.Api.SignalR
         public override async Task OnConnectedAsync()
         {
             await base.OnConnectedAsync();
-            //await BroadcastGraphData();
-            await SendLineData(100);
+            await BroadcastGraphData();
         }
 
     }

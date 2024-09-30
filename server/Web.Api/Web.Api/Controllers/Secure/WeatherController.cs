@@ -9,7 +9,7 @@ namespace Web.Api.Controllers.Secure
     [ApiController]
     public class WeatherController(IWeatherService weatherService) : SecureController
     {
-        [HttpGet("getweather")]
+        [HttpGet("getweather", Name = "getweather")]
         public IActionResult GetWeather([FromQuery] WeatherRequest request)
         {
             var validationResponse = ValidateModelState();
