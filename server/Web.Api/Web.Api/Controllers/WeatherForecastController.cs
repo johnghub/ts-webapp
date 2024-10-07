@@ -1,35 +1,25 @@
 using Microsoft.AspNetCore.Mvc;
+using Web.Api.Domain.Services;
 using Web.Api.Infrastructure.Controller;
 
 namespace Web.Api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class WeatherForecastController : PublicController
+    public class WeatherForecastController(IWeatherForecastService weatherForecastService) : PublicController
     {
-        private static readonly string[] Summaries = new[]
-        {
-            "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-        };
-
-        private readonly ILogger<WeatherForecastController> _logger;
-
-        public WeatherForecastController(ILogger<WeatherForecastController> logger)
-        {
-            _logger = logger;
-        }
 
         [HttpGet(Name = "GetWeatherForecast")]
-        public IEnumerable<WeatherForecast> Get()
+        public IActionResult Get()
         {
-            return Enumerable.Range(1, 10).Select(index => new WeatherForecast
+            var result = weatherForecastService.GetWeatherForecast();
+
+            if (result == null || !result.Any())
             {
-                Id = index,  // Assign the index as the unique ID
-                Date = DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                TemperatureC = Random.Shared.Next(-20, 55),
-                Summary = Summaries[Random.Shared.Next(Summaries.Length)]
-            })
-            .ToArray();
+                return NotFound(); // Respond with a 404 if no data is available
+            }
+
+            return Ok(result); // Respond with a 200 OK and the result if available
         }
     }
 }

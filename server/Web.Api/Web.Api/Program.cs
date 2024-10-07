@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Web.Api.Domain.Services;
+using Web.Api.Infrastructure.DI;
 using Web.Api.SignalR;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -45,6 +46,8 @@ builder.Services.AddCors(options =>
         .AllowCredentials());
 });
 
+// Register services from the Domain project
+builder.Services.RegisterDomainServices("Web.Api.Domain");
 
 var app = builder.Build();
 
