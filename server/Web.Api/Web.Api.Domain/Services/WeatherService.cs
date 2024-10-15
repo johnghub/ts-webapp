@@ -1,8 +1,11 @@
-﻿using Web.Api.Domain.Models;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Web.Api.Domain.Infrastructure;
+using Web.Api.Domain.Models;
 
 namespace Web.Api.Domain.Services
 {
 
+    [RegisterAsService(typeof(IWeatherService), ServiceLifetime.Transient)]
     public class WeatherService : IWeatherService
     {
         public ServiceResult<WeatherData> GetWeather(string location)

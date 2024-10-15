@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "ApiMetaData": {
+      "commandName": "Project",
+      "commandLineArgs": "-d ..\\..\\..\\..\\..\\server\\Web.Api\\Web.Api\\Controllers \r\n-a ..\\..\\..\\..\\..\\server\\Web.Api\\Web.Api\\bin\\Debug\\net8.0\\Web.Api.Domain.dll\r\n-n Web.Api.Domain.Models"
+    }
+  }
+}

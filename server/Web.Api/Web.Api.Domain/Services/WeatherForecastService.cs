@@ -1,7 +1,10 @@
-﻿using Web.Api.Domain.Models;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Web.Api.Domain.Infrastructure;
+using Web.Api.Domain.Models;
 
 namespace Web.Api.Domain.Services
 {
+    [RegisterAsService(typeof(IWeatherForecastService), ServiceLifetime.Transient)]
     public class WeatherForecastService : IWeatherForecastService
     {
         private static readonly string[] _summaries =

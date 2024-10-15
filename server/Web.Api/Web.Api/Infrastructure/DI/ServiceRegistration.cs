@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using Web.Api.Domain.Infrastructure;
 
 namespace Web.Api.Infrastructure.DI
 {
@@ -11,19 +12,29 @@ namespace Web.Api.Infrastructure.DI
 
             // Iterate over all types in the assembly
             var serviceTypes = assembly.GetTypes()
-                .Where(type => type.IsClass && !type.IsAbstract );
+                .Where(type => type.IsClass 
+                           && !type.IsAbstract
+                           && type.GetCustomAttribute<RegisterAsServiceAttribute>() != null);
 
             foreach (var serviceType in serviceTypes)
             {
-                // Look for a corresponding interface with the same name pattern "I<PurposeName>Service"
-                var serviceInterface = serviceType.GetInterfaces()
-                    .FirstOrDefault(i => i.Name == "I" + serviceType.Name);
-
-                if (serviceInterface != null && serviceInterface.Name.EndsWith("Service"))
+                var attribute = serviceType.GetCustomAttribute<RegisterAsServiceAttribute>();
+                if (attribute != null)
                 {
-                    // Register as transient in the DI container
-                    services.AddTransient(serviceInterface, serviceType);
+                    switch (attribute.Lifetime)
+                    {
+                        case ServiceLifetime.Transient:
+                            services.AddTransient(attribute.InterfaceType, serviceType);
+                            break;
+                        case ServiceLifetime.Scoped:
+                            services.AddScoped(attribute.InterfaceType, serviceType);
+                            break;
+                        case ServiceLifetime.Singleton:
+                            services.AddSingleton(attribute.InterfaceType, serviceType);
+                            break;
+                    }
                 }
+
             }
         }
     }
