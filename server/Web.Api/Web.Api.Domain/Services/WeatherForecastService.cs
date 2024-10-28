@@ -11,11 +11,12 @@ namespace Web.Api.Domain.Services
         [
             "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
         ];
-       
-            
-        public IEnumerable<WeatherForecast> GetWeatherForecast()
+
+
+        [ReturnTypeDiscovery]
+        public ServiceResult<IEnumerable<WeatherForecast>> GetWeatherForecast()
         {
-            return Enumerable.Range(1, 10).Select(index => new WeatherForecast
+            var result =  Enumerable.Range(1, 10).Select(index => new WeatherForecast
             {
                 Id = index,  // Assign the index as the unique ID
                 Date = DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
@@ -23,11 +24,14 @@ namespace Web.Api.Domain.Services
                 Summary = _summaries[Random.Shared.Next(_summaries.Length)]
             })
             .ToArray();
+
+            return ServiceResult<IEnumerable<WeatherForecast>>.SuccessResult(result);
         }
 }
 
     public interface IWeatherForecastService
     {
-        IEnumerable<WeatherForecast> GetWeatherForecast();
+        [ReturnTypeDiscovery]
+        ServiceResult<IEnumerable<WeatherForecast>> GetWeatherForecast();
     }
 }

@@ -8,6 +8,7 @@ namespace Web.Api.Domain.Services
     [RegisterAsService(typeof(IWeatherService), ServiceLifetime.Transient)]
     public class WeatherService : IWeatherService
     {
+        [ReturnTypeDiscovery]
         public ServiceResult<WeatherData> GetWeather(string location)
         {
             if (location != "ValidLocation")
@@ -21,6 +22,7 @@ namespace Web.Api.Domain.Services
 
     public interface IWeatherService
     {
+        [ReturnTypeDiscovery]
         ServiceResult<WeatherData> GetWeather(string location);
     }
 }

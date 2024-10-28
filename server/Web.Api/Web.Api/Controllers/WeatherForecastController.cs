@@ -9,17 +9,25 @@ namespace Web.Api.Controllers
     public class WeatherForecastController(IWeatherForecastService weatherForecastService) : PublicController
     {
 
-        [HttpGet(Name = "GetWeatherForecast")]
+        [HttpGet("getweatherforecast", Name = "GetWeatherForecast" )]
         public IActionResult Get()
         {
-            var result = weatherForecastService.GetWeatherForecast();
 
-            if (result == null || !result.Any())
-            {
-                return NotFound(); // Respond with a 404 if no data is available
-            }
+            var serviceResult = weatherForecastService.GetWeatherForecast();
+            var serviceResponse = HandleServiceResult(serviceResult); //<IEnumerable<WeatherForecast>>
+            if (serviceResponse != null)
+                return serviceResponse;
 
-            return Ok(result); // Respond with a 200 OK and the result if available
+            return Ok(serviceResult.Data);
+
+            //var result = weatherForecastService.GetWeatherForecast();
+
+            //if (result == null || !result.Any())
+            //{
+            //    return NotFound(); // Respond with a 404 if no data is available
+            //}
+
+            //return Ok(result); // Respond with a 200 OK and the result if available
         }
     }
 }

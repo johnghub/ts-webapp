@@ -11,7 +11,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{6D01A34F
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Web.Api.Domain.Tests", "Web.Api.Domain.Tests\Web.Api.Domain.Tests.csproj", "{68C2758A-5E1D-4B17-B9BE-F566E1AA9EEB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApiMetaData", "..\..\Utility\ApiMetaData\ApiMetaData.csproj", "{963507EA-A418-43E7-B828-720BC46AADA3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApiMetaData", "..\..\Utility\ApiMetaData\ApiMetaData.csproj", "{963507EA-A418-43E7-B828-720BC46AADA3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebApiAnalysis", "WebApiAnalysis\WebApiAnalysis.csproj", "{B175850F-8ACB-4160-8E5E-C79F827E346B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -35,6 +37,10 @@ Global
 		{963507EA-A418-43E7-B828-720BC46AADA3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{963507EA-A418-43E7-B828-720BC46AADA3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{963507EA-A418-43E7-B828-720BC46AADA3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B175850F-8ACB-4160-8E5E-C79F827E346B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B175850F-8ACB-4160-8E5E-C79F827E346B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B175850F-8ACB-4160-8E5E-C79F827E346B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B175850F-8ACB-4160-8E5E-C79F827E346B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
