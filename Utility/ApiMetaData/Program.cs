@@ -4,9 +4,14 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Reflection;
 using CommandLine;
+using ApiMetaData.Models;
 
 var executionDirectory = AppDomain.CurrentDomain.BaseDirectory;
 Console.WriteLine($"Execution Directory: {executionDirectory}");
+
+List<APIMetaData> apiMetaDataCollection = [];
+
+
 
 Parser.Default.ParseArguments<Options>(args)
     .WithParsed<Options>(opts =>
@@ -35,54 +40,412 @@ Parser.Default.ParseArguments<Options>(args)
         {
             ProcessControllerFile(file, assembly, parameterNamespace);
         }
+
+        Console.WriteLine(@"========================================
+Writing meta data collection
+========================================");
+        WriteAPIMetaData(apiMetaDataCollection);
+
+        Console.WriteLine(@">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+Writing meta data collection
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
+        WriteApiTSFiles();
+
     });
 
-static void ProcessControllerFile(string filePath, Assembly assembly, string parameterNamespace)
+void ProcessControllerFile(string filePath, Assembly assembly, string parameterNamespace)
 {
     var code = File.ReadAllText(filePath);
     var tree = CSharpSyntaxTree.ParseText(code);
-    var root = tree.GetRoot() as CompilationUnitSyntax;
+    CompilationUnitSyntax root = tree.GetCompilationUnitRoot();
+
+    var assemblies = AppDomain.CurrentDomain.GetAssemblies()
+        .Where(a => !a.IsDynamic && !string.IsNullOrEmpty(a.Location))
+        .Select(a => MetadataReference.CreateFromFile(a.Location))
+        .ToList();
+
+    var compilation = CSharpCompilation.Create("Analysis")
+        .AddReferences(assemblies)
+        .AddSyntaxTrees(tree);
+
+    var model = compilation.GetSemanticModel(tree);
 
     foreach (var classNode in root.DescendantNodes().OfType<ClassDeclarationSyntax>())
     {
         if (classNode.Identifier.Text.EndsWith("Controller"))
         {
+
             Console.WriteLine($"Controller: {classNode.Identifier.Text}");
+
+            // Extract the Route attribute from the controller
+            string controllerRoutePath = null;
+            var controllerAttributes = classNode.AttributeLists.SelectMany(attrList => attrList.Attributes);
+            foreach (var attribute in controllerAttributes)
+            {
+                if (attribute.Name.ToString().Equals("Route", StringComparison.OrdinalIgnoreCase) && attribute.ArgumentList != null && attribute.ArgumentList.Arguments.Count > 0)
+                {
+                    controllerRoutePath = attribute.ArgumentList.Arguments[0].ToString().Trim('"');
+                    break;
+                }
+            }
+
             foreach (var method in classNode.Members.OfType<MethodDeclarationSyntax>())
             {
-                var attributes = method.AttributeLists;
-                foreach (var attr in attributes)
+
+                // Only consider public methods
+                if (!method.Modifiers.Any(SyntaxKind.PublicKeyword))
                 {
-                    Console.WriteLine($"  Method: {method.Identifier.Text}");
-                    Console.WriteLine($"  Return Type: {method.ReturnType}");
-                    Console.WriteLine($"  Attributes: {string.Join(", ", attr.Attributes)}");
+                    continue;
+                }
 
-                    // Extract parameters
-                    foreach (var parameter in method.ParameterList.Parameters)
+                // Extract HTTP Verb by looking for attributes like [HttpGet], [HttpPost], etc.
+                var httpVerbAttribute = method.AttributeLists
+                    .SelectMany(attrList => attrList.Attributes)
+                    .FirstOrDefault(attr =>
+                        attr.Name.ToString().Equals("HttpGet", StringComparison.OrdinalIgnoreCase) ||
+                        attr.Name.ToString().Equals("HttpPost", StringComparison.OrdinalIgnoreCase) ||
+                        attr.Name.ToString().Equals("HttpPut", StringComparison.OrdinalIgnoreCase) ||
+                        attr.Name.ToString().Equals("HttpDelete", StringComparison.OrdinalIgnoreCase));
+
+                // Only continue if an HTTP verb is found
+                if (httpVerbAttribute == null)
+                {
+                    continue;
+                }
+
+                // Extract the HTTP verb
+                var httpVerb = httpVerbAttribute.Name.ToString();
+                Console.WriteLine($"  HTTP Verb: {httpVerb}");
+
+                // Extract RoutePath if specified in the attribute
+                string routePath = null;
+                if (httpVerbAttribute.ArgumentList != null && httpVerbAttribute.ArgumentList.Arguments.Count > 0)
+                {
+                    // Get the route path from the first argument (e.g., [HttpGet("routePath")])
+                    routePath = httpVerbAttribute.ArgumentList.Arguments[0].ToString().Trim('"');
+                }
+
+                Console.WriteLine($"  Route Path: {routePath ?? "Not specified"}");
+
+                // Extract return type (initial IActionResult)
+                var returnTypeInfo = model.GetTypeInfo(method.ReturnType);
+                Console.WriteLine($"  Initial Return Type: {returnTypeInfo.Type}");
+
+
+                // Extract the result type
+                ResultMetaData resultMetaData = new();
+
+                // Analyze method body to determine the return value from the service
+                if (method.Body != null)
+                {
+                    var invocationExpressions = method.Body.DescendantNodes().OfType<InvocationExpressionSyntax>();
+
+                    foreach (var invocation in invocationExpressions)
                     {
-                        Console.WriteLine($"  Parameter: {parameter.Identifier.Text} of Type: {parameter.Type}");
+                        // Try to get the symbol information for the method call
+                        var symbolInfo = model.GetSymbolInfo(invocation);
+                        var methodSymbol = symbolInfo.Symbol as IMethodSymbol;
 
-                        // Extract properties of complex object parameters
-                        var parameterType = parameter.Type as IdentifierNameSyntax;
-                        if (parameterType != null)
+                        if (methodSymbol != null)
                         {
-                            var fullTypeName = $"{parameterNamespace}.{parameterType.Identifier.Text}";
-                            var type = assembly.GetType(fullTypeName);
-                            if (type != null)
+                            // Extract the return type of the service method
+                            var returnType = methodSymbol.ReturnType;
+
+                            // If the return type is generic, extract the type argument
+                            if (returnType is INamedTypeSymbol namedTypeSymbol && namedTypeSymbol.IsGenericType)
                             {
-                                Console.WriteLine($"    Properties of {parameterType.Identifier.Text}:");
-                                foreach (var property in type.GetProperties())
+                                // Start with ServiceResult<T> - extract the T argument
+                                var currentSymbol = namedTypeSymbol;
+                                var typeArgumentsStack = new Stack<string>(); // To keep track of the generic types
+
+                                while (currentSymbol.IsGenericType)
                                 {
-                                    Console.WriteLine($"      {property.Name} of Type: {property.PropertyType}");
+                                    // Get the first type argument
+                                    var genericArgument = currentSymbol.TypeArguments.FirstOrDefault();
+                                    if (genericArgument == null)
+                                    {
+                                        break;
+                                    }
+
+                                    // Track the parent generic type for later code generation (e.g., IEnumerable<T>)
+                                    typeArgumentsStack.Push(currentSymbol.Name);
+
+                                    if (genericArgument is INamedTypeSymbol nestedNamedType && nestedNamedType.IsGenericType)
+                                    {
+                                        // If it's a nested generic, set currentSymbol to the nested generic to continue extraction
+                                        currentSymbol = nestedNamedType;
+                                    }
+                                    else
+                                    {
+                                        // If we reached the innermost non-generic type, extract its name
+                                        var innermostTypeName = genericArgument.ToString();
+
+                                        resultMetaData.ResultTypeName = innermostTypeName ??= "";
+
+                                        Console.WriteLine($"  Inferred Innermost Type: {innermostTypeName}");
+
+                                        // Check if the type is a native type (e.g., int, bool, etc.)
+                                        if (genericArgument.IsValueType || genericArgument.SpecialType != SpecialType.None)
+                                        {
+                                            Console.WriteLine($"    Native Type: {innermostTypeName}");
+                                            resultMetaData.IsPrimitiveType = true;
+                                            resultMetaData.PrimitiveType = innermostTypeName;
+                                        }
+                                        else
+                                        {
+                                            // Get the type information using reflection for the innermost type
+                                            var type = assembly.GetType(innermostTypeName);
+                                            if (type != null)
+                                            {
+                                                Console.WriteLine($"    Properties of {innermostTypeName}:");
+                                                foreach (var property in type.GetProperties())
+                                                {
+                                                    Console.WriteLine($"      {property.Name} of Type: {property.PropertyType}");
+                                                    resultMetaData.ResultTypeProperties.Add(new PropertyMetaData
+                                                    {
+                                                        PropertyName = property.Name,
+                                                        PropertyType = property.PropertyType.ToString()
+                                                    });
+                                                }
+                                            }
+                                            else
+                                            {
+                                                Console.WriteLine($"    Could not find type {innermostTypeName} in the provided assembly.");
+                                            }
+                                        }
+
+                                        break;
+                                    }
+                                }
+
+                                // After determining the innermost type, print the full generic type chain for code generation purposes
+                                if (typeArgumentsStack.Count > 0)
+                                {
+                                    var fullGenericChain = string.Join(" -> ", typeArgumentsStack.Reverse());
+                                    resultMetaData.TypeChain = typeArgumentsStack.Reverse().ToList();
+                                    Console.WriteLine($"  Full Generic Type Chain: {fullGenericChain}");
+                                }
+                            }
+                            else if (returnType != null && returnType.TypeKind == TypeKind.Class)
+                            {
+                                // Handle non-generic return types
+                                var fullTypeName = returnType.ToString();
+                                Console.WriteLine($"  Inferred Return Type from Service: {fullTypeName}");
+
+                                // Get the type information using reflection
+                                var type = assembly.GetType(fullTypeName);
+                                if (type != null)
+                                {
+                                    Console.WriteLine($"    Properties of {fullTypeName}:");
+                                    foreach (var property in type.GetProperties())
+                                    {
+                                        Console.WriteLine($"      {property.Name} of Type: {property.PropertyType}");
+                                    }
+                                }
+                                else
+                                {
+                                    Console.WriteLine($"    Could not find type {fullTypeName} in the provided assembly.");
                                 }
                             }
                         }
                     }
                 }
+
+                // Extract parameters and their properties
+                var parameters = new List<ParameterMetaData>();
+
+
+                foreach (var parameter in method.ParameterList.Parameters)
+                {
+                    var parameterTypeInfo = model.GetTypeInfo(parameter.Type);
+                    var parameterType = parameterTypeInfo.Type;
+
+                    var parameterMetaData = new ParameterMetaData
+                    {
+                        ParameterName = parameter.Identifier.Text,
+                        ParameterType = parameterType.ToString(),
+                    };
+
+                    // Extract properties of complex object parameters
+                    if (parameterType != null && parameterType.TypeKind == TypeKind.Class && parameterType.ContainingNamespace?.ToString() == parameterNamespace)
+                    {
+                        var type = assembly.GetType(parameterType.ToString());
+                        if (type != null)
+                        {
+                            foreach (var property in type.GetProperties())
+                            {
+                                Console.WriteLine($"    Properties of {parameter.Identifier.Text} ({parameterType}):");
+
+                                parameterMetaData.ParameterProperties.Add(new PropertyMetaData
+                                {
+                                    PropertyName = property.Name,
+                                    PropertyType = property.PropertyType.ToString()
+                                });
+                            }
+                        }
+                    }
+
+                    parameters.Add(parameterMetaData);
+                }
+
+                // Create APIMetaData object to store the extracted metadata
+                var apiMetaData = new APIMetaData
+                {
+                    ControllerName = classNode.Identifier.Text,
+                    MethodName = method.Identifier.Text,
+                    HttpVerb = httpVerb,
+                    RoutePath = routePath ?? string.Empty,
+                    ControllerRoutePath = controllerRoutePath ?? "api/[controller]",
+
+                    Parameters = parameters,
+                    ResultTypeName = resultMetaData.ResultTypeName,
+                    IsPrimitiveType = resultMetaData.IsPrimitiveType,
+                    PrimitiveType = resultMetaData.PrimitiveType,
+                    ResultTypeProperties = resultMetaData.ResultTypeProperties,
+                    TypeChain = resultMetaData.TypeChain,
+                };
+
+                apiMetaDataCollection.Add(apiMetaData);
             }
         }
     }
 }
+
+void WriteAPIMetaData(List<APIMetaData> apiMetaDataCollection)
+{
+    foreach (var api in apiMetaDataCollection)
+    {
+        Console.WriteLine($"Controller: {api.ControllerName}");
+        Console.WriteLine($"  Method: {api.MethodName}");
+        Console.WriteLine($"  HTTP Verb: {api.HttpVerb}");
+        Console.WriteLine($"  Route Path: {api.RoutePath}");
+        Console.WriteLine($"  Controller Route Path: {api.ControllerRoutePath}");
+        Console.WriteLine($"  Result Type Name: {api.ResultTypeName}");
+        if (api.IsPrimitiveType)
+        {
+            Console.WriteLine($"  Primitive Type: {api.PrimitiveType}");
+        }
+        else
+        {
+            Console.WriteLine("  Result Type Properties:");
+            foreach (var property in api.ResultTypeProperties)
+            {
+                Console.WriteLine($"    {property.PropertyName} of Type: {property.PropertyType}");
+            }
+        }
+
+        Console.WriteLine("  Type Chain:");
+        foreach (var type in api.TypeChain)
+        {
+            Console.WriteLine($"    {type}");
+        }
+
+        Console.WriteLine("  Parameters:");
+        foreach (var parameter in api.Parameters)
+        {
+            Console.WriteLine($"    Parameter Name: {parameter.ParameterName}");
+            Console.WriteLine($"    Parameter Type: {parameter.ParameterType}");
+            if (parameter.ParameterProperties.Count > 0)
+            {
+                Console.WriteLine("    Parameter Properties:");
+                foreach (var property in parameter.ParameterProperties)
+                {
+                    Console.WriteLine($"      {property.PropertyName} of Type: {property.PropertyType}");
+                }
+            }
+        }
+    }
+}
+
+void WriteApiTSFiles()
+{
+    foreach (var api in apiMetaDataCollection)
+    {
+        // Generate TypeScript interface for result type
+        if (!api.IsPrimitiveType)
+        {
+            Console.WriteLine($"export interface {api.ResultTypeName} {{");
+            foreach (var property in api.ResultTypeProperties)
+            {
+                Console.WriteLine($"    {property.PropertyName}: {ConvertToTSType(property.PropertyType)};");
+            }
+            Console.WriteLine($"}}");
+        }
+
+        // Generate TypeScript function for the API method
+        if (string.Equals(api.HttpVerb, "HttpGet", StringComparison.OrdinalIgnoreCase))
+        {
+            string queryParams = string.Join("&", api.Parameters.Select(p => $"{p.ParameterName}=${{{p.ParameterName}}}"));
+            string paramList = string.Join(", ", api.Parameters.Select(p => $"{p.ParameterName}: {ConvertToTSType(p.ParameterType)}"));
+
+            Console.WriteLine($"export async function {api.MethodName}({paramList}): Promise<{api.ResultTypeName}[]> {{");
+            Console.WriteLine($"    const response = await fetch(`/api/{api.RoutePath}?{queryParams}`, {{ method: 'get' }});");
+            Console.WriteLine($"    return response.json();");
+            Console.WriteLine($"}}");
+        }
+        else if (string.Equals(api.HttpVerb, "HttpPost", StringComparison.OrdinalIgnoreCase))
+        {
+            string paramList = string.Join(", ", api.Parameters.Select(p => $"{p.ParameterName}: {ConvertToTSType(p.ParameterType)}"));
+            string bodyParams = string.Join(", ", api.Parameters.Select(p => $"{p.ParameterName}: {p.ParameterName}"));
+
+            Console.WriteLine($"export async function {api.MethodName}({paramList}): Promise<{api.ResultTypeName}> {{");
+            Console.WriteLine($"    const response = await fetch('/api/{api.RoutePath}', {{");
+            Console.WriteLine($"        method: 'post',");
+            Console.WriteLine($"        headers: {{ 'Content-Type': 'application/json' }},");
+            Console.WriteLine($"        body: JSON.stringify({{{bodyParams}}})");
+            Console.WriteLine($"    }});");
+            Console.WriteLine($"    return response.json();");
+            Console.WriteLine($"}}");
+        }
+    }
+}
+
+string ConvertToTSType(string csharpType)
+{
+    if (TryParsePrimitive(csharpType, out string tsType))
+    {
+        return tsType;
+    }
+    else
+    {
+        return ParseObjectType(csharpType);
+    }
+}
+
+bool TryParsePrimitive(string csharpType, out string tsType)
+{
+    tsType = csharpType switch
+    {
+        "System.Int32" => "number",
+        "System.Single" => "number",
+        "System.Double" => "number",
+        "System.Decimal" => "number",
+        "System.String" => "string",
+        "System.Boolean" => "boolean",
+        "System.DateTime" => "string", // ISO format
+        _ => null
+    };
+    return tsType != null;
+}
+
+string ParseObjectType(string csharpType)
+{
+    // Assuming Parameters are populated for custom types
+    var customParameter = apiMetaDataCollection.SelectMany(api => api.Parameters).FirstOrDefault(p => p.ParameterType == csharpType);
+    if (customParameter != null && customParameter.ParameterProperties.Any())
+    {
+        string interfaceName = customParameter.ParameterName + "ParamType";
+        Console.WriteLine($"export interface {interfaceName} {{");
+        foreach (var property in customParameter.ParameterProperties)
+        {
+            Console.WriteLine($"    {property.PropertyName}: {ConvertToTSType(property.PropertyType)};");
+        }
+        Console.WriteLine($"}}");
+        return interfaceName; // Return the generated TypeScript interface name
+    }
+    return "any"; // Default to 'any' for unknown types
+};
+
 
 public class Options
 {
