@@ -5,12 +5,13 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Reflection;
 using CommandLine;
 using ApiMetaData.Models;
+using ApiMetaData.Infrastructure;
+using System.Text;
 
 var executionDirectory = AppDomain.CurrentDomain.BaseDirectory;
 Console.WriteLine($"Execution Directory: {executionDirectory}");
 
 List<APIMetaData> apiMetaDataCollection = [];
-
 
 
 Parser.Default.ParseArguments<Options>(args)
@@ -19,6 +20,8 @@ Parser.Default.ParseArguments<Options>(args)
         var directoryPath = Path.IsPathRooted(opts.DirectoryPath) ? opts.DirectoryPath : Path.Combine(executionDirectory, opts.DirectoryPath);
         var assemblyPath = Path.IsPathRooted(opts.AssemblyPath) ? opts.AssemblyPath : Path.Combine(executionDirectory, opts.AssemblyPath);
         var parameterNamespace = opts.Namespace;
+        var tsFilePath = opts.TSFilePath;
+        var outputMode = opts.OutputMode;
 
         if (!Directory.Exists(directoryPath))
         {
@@ -47,12 +50,10 @@ Writing meta data collection
         WriteAPIMetaData(apiMetaDataCollection);
 
         Console.WriteLine(@">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-Writing meta data collection
+Writing TypeScript file
 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
-        WriteApiTSFiles();
-
+        WriteApiTSFiles(tsFilePath, outputMode);
     });
-
 void ProcessControllerFile(string filePath, Assembly assembly, string parameterNamespace)
 {
     var code = File.ReadAllText(filePath);
@@ -180,7 +181,7 @@ void ProcessControllerFile(string filePath, Assembly assembly, string parameterN
                                         // If we reached the innermost non-generic type, extract its name
                                         var innermostTypeName = genericArgument.ToString();
 
-                                        resultMetaData.ResultTypeName = innermostTypeName ??= "";
+                                        resultMetaData.ResultTypeName = ConvertToTSTypeOrStripDomain(innermostTypeName ??= "");
 
                                         Console.WriteLine($"  Inferred Innermost Type: {innermostTypeName}");
 
@@ -357,19 +358,44 @@ void WriteAPIMetaData(List<APIMetaData> apiMetaDataCollection)
     }
 }
 
-void WriteApiTSFiles()
+#if true
+void WriteApiTSFiles(string path, OutputMode outputMode)
 {
+    var output = new StringBuilder();
+    var generatedTypes = new HashSet<string>(); // Track generated TypeScript types
+
     foreach (var api in apiMetaDataCollection)
     {
         // Generate TypeScript interface for result type
-        if (!api.IsPrimitiveType)
+        string strippedResultTypeName = ConvertToTSTypeOrStripDomain(api.ResultTypeName);
+        if (!api.IsPrimitiveType && strippedResultTypeName != "void")
         {
-            Console.WriteLine($"export interface {api.ResultTypeName} {{");
-            foreach (var property in api.ResultTypeProperties)
+            if (!generatedTypes.Contains(strippedResultTypeName))
             {
-                Console.WriteLine($"    {property.PropertyName}: {ConvertToTSType(property.PropertyType)};");
+                output.AppendLine($"export interface {strippedResultTypeName} {{");
+                foreach (var property in api.ResultTypeProperties)
+                {
+                    output.AppendLine($"    {property.PropertyName}: {ConvertToTSType(property.PropertyType)};");
+                }
+                output.AppendLine($"}}");
+                generatedTypes.Add(strippedResultTypeName);
             }
-            Console.WriteLine($"}}");
+        }
+
+        // Generate TypeScript interface for parameters if they are complex types
+        foreach (var parameter in api.Parameters)
+        {
+            string strippedParameterTypeName = ConvertToTSTypeOrStripDomain(parameter.ParameterType)+"ParamType";
+            if (!IsPrimitive(parameter.ParameterType) && !generatedTypes.Contains(strippedParameterTypeName))
+            {
+                output.AppendLine($"export interface {strippedParameterTypeName} {{");
+                foreach (var property in parameter.ParameterProperties)
+                {
+                    output.AppendLine($"    {property.PropertyName}: {ConvertToTSType(property.PropertyType)};");
+                }
+                output.AppendLine($"}}");
+                generatedTypes.Add(strippedParameterTypeName);
+            }
         }
 
         // Generate TypeScript function for the API method
@@ -378,25 +404,125 @@ void WriteApiTSFiles()
             string queryParams = string.Join("&", api.Parameters.Select(p => $"{p.ParameterName}=${{{p.ParameterName}}}"));
             string paramList = string.Join(", ", api.Parameters.Select(p => $"{p.ParameterName}: {ConvertToTSType(p.ParameterType)}"));
 
-            Console.WriteLine($"export async function {api.MethodName}({paramList}): Promise<{api.ResultTypeName}[]> {{");
-            Console.WriteLine($"    const response = await fetch(`/api/{api.RoutePath}?{queryParams}`, {{ method: 'get' }});");
-            Console.WriteLine($"    return response.json();");
-            Console.WriteLine($"}}");
+            output.AppendLine($"export async function {api.MethodName}({paramList}): Promise<{strippedResultTypeName}[]> {{");
+            output.AppendLine($"    const response = await fetch(`/api/{api.RoutePath}?{queryParams}`, {{ method: 'get' }});");
+            output.AppendLine($"    return response.json();");
+            output.AppendLine($"}}");
         }
         else if (string.Equals(api.HttpVerb, "HttpPost", StringComparison.OrdinalIgnoreCase))
         {
             string paramList = string.Join(", ", api.Parameters.Select(p => $"{p.ParameterName}: {ConvertToTSType(p.ParameterType)}"));
             string bodyParams = string.Join(", ", api.Parameters.Select(p => $"{p.ParameterName}: {p.ParameterName}"));
 
-            Console.WriteLine($"export async function {api.MethodName}({paramList}): Promise<{api.ResultTypeName}> {{");
-            Console.WriteLine($"    const response = await fetch('/api/{api.RoutePath}', {{");
-            Console.WriteLine($"        method: 'post',");
-            Console.WriteLine($"        headers: {{ 'Content-Type': 'application/json' }},");
-            Console.WriteLine($"        body: JSON.stringify({{{bodyParams}}})");
-            Console.WriteLine($"    }});");
-            Console.WriteLine($"    return response.json();");
-            Console.WriteLine($"}}");
+            // Generate TypeScript type for parameters if multiple
+            if (api.Parameters.Count > 1)
+            {
+                string paramsTypeName = $"{api.MethodName}Params";
+                if (!generatedTypes.Contains(paramsTypeName))
+                {
+                    output.AppendLine($"export interface {paramsTypeName} {{");
+                    foreach (var parameter in api.Parameters)
+                    {
+                        output.AppendLine($"    {parameter.ParameterName}: {ConvertToTSType(parameter.ParameterType)};");
+                    }
+                    output.AppendLine($"}}");
+                    generatedTypes.Add(paramsTypeName);
+                }
+                output.AppendLine($"export async function {api.MethodName}(params: {paramsTypeName}): Promise<{strippedResultTypeName}> {{");
+                output.AppendLine($"    const response = await fetch('/api/{api.RoutePath}', {{");
+                output.AppendLine($"        method: 'post',");
+                output.AppendLine($"        headers: {{ 'Content-Type': 'application/json' }},");
+                output.AppendLine($"        body: JSON.stringify(params)");
+                output.AppendLine($"    }});");
+                output.AppendLine($"    return response.json();");
+                output.AppendLine($"}}");
+            }
+            else
+            {
+                output.AppendLine($"export async function {api.MethodName}({paramList}): Promise<{strippedResultTypeName}> {{");
+                output.AppendLine($"    const response = await fetch('/api/{api.RoutePath}', {{");
+                output.AppendLine($"        method: 'post',");
+                output.AppendLine($"        headers: {{ 'Content-Type': 'application/json' }},");
+                output.AppendLine($"        body: JSON.stringify({{{bodyParams}}})");
+                output.AppendLine($"    }});");
+                output.AppendLine($"    return response.json();");
+                output.AppendLine($"}}");
+            }
+
         }
+    }
+
+    switch (outputMode)
+    {
+        case OutputMode.Console:
+            Console.WriteLine(output.ToString());
+            break;
+        case OutputMode.File:
+            File.WriteAllText(path, output.ToString());
+            break;
+        case OutputMode.Both:
+            Console.WriteLine(output.ToString());
+            File.WriteAllText(path, output.ToString());
+            break;
+    }
+}
+
+string ConvertToTSTypeOrStripDomain(string typeName)
+{
+    if (string.IsNullOrEmpty(typeName))
+    {
+        return "void";
+    }
+
+    // Convert C# primitive types to TypeScript equivalents
+    switch (typeName)
+    {
+        case "int":
+        case "long":
+        case "single":
+        case "float":
+        case "decimal":
+            return "number";
+        case "bool":
+            return "boolean";
+        case "System.DateTime":
+            return "string"; // ISO format
+        default:
+            // If not a primitive, strip the namespace or domain from the type name
+            return StripDomain(typeName);
+    }
+}
+
+
+string StripDomain(string typeName)
+{
+    if (string.IsNullOrEmpty(typeName))
+    {
+        return "void";
+    }
+    // Strip the namespace or domain from the type name, keeping only the class name
+    var parts = typeName.Split('.');
+    return parts.Length > 0 ? parts.Last() : typeName;
+}
+
+#else
+
+#endif
+
+bool IsPrimitive(string typeName)
+{
+    switch (typeName)
+    {
+        case "System.Int32":
+        case "System.Single":
+        case "System.Double":
+        case "System.Decimal":
+        case "System.String":
+        case "System.Boolean":
+        case "System.DateTime":
+            return true;
+        default:
+            return false;
     }
 }
 
@@ -434,7 +560,8 @@ string ParseObjectType(string csharpType)
     var customParameter = apiMetaDataCollection.SelectMany(api => api.Parameters).FirstOrDefault(p => p.ParameterType == csharpType);
     if (customParameter != null && customParameter.ParameterProperties.Any())
     {
-        string interfaceName = customParameter.ParameterName + "ParamType";
+        //string interfaceName = customParameter.ParameterName + "ParamType";
+        string interfaceName = StripDomain(csharpType) + "ParamType";
         Console.WriteLine($"export interface {interfaceName} {{");
         foreach (var property in customParameter.ParameterProperties)
         {
@@ -457,6 +584,12 @@ public class Options
 
     [Option('n', "namespace", Required = true, HelpText = "Namespace of the parameter object type.")]
     public required string Namespace { get; set; }
+
+    [Option('t', "typescript", Required = true, HelpText = "Path to the TypeScript output file.")]
+    public required string TSFilePath { get; set; }
+
+    [Option('o', "outputmode", Required = false, Default = OutputMode.Console, HelpText = "Output mode for writing TypeScript (Console, File, Both).")]
+    public required OutputMode OutputMode { get; set; }
 }
 
 
