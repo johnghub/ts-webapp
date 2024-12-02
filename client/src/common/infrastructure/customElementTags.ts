@@ -21,6 +21,7 @@ export const AUTH_STATE_SERVICE_TAG = "auth-state-service";
 export const LOGIN_DLG_TAG = "login-dialog";
 export const NAV_BAR_TAG = "nav-bar";
 export const ROUTE_ELEMENT_TAG = "route-element";
+export const API_PROXY_TAG = "api-proxy";
 
 // Modal dialogs
 export const WEATHER_EDIT_MODAL_TAG = "weather-page-edit-dialog";

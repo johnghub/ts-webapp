@@ -7,7 +7,7 @@ namespace Web.Api.Controllers.Secure
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class WeatherController(IWeatherService weatherService) : SecureController
+    public class WeatherController(IWeatherService weatherService) : PublicController //SecureController
     {
         [HttpGet("getweather", Name = "getweather")]
         public IActionResult GetWeather([FromQuery] WeatherRequest request)

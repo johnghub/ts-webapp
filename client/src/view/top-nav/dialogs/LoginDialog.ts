@@ -1,3 +1,4 @@
+import { UserCredentialsParamType } from "../../../codegen/api";
 import {
   AUTH_PROXY_TAG,
   LOGIN_DLG_TAG,
@@ -172,6 +173,11 @@ export class LoginDialog extends HTMLElement {
     this.clearError();
 
     // Convert formData to JSON
+    // const body1: UserCredentialsParamType = {
+    //   Username: jsonData.username,
+    //   Password: jsonData.password,
+    // };
+
     const body = JSON.stringify({
       username: jsonData.username,
       password: jsonData.password,

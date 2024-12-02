@@ -1,3 +1,4 @@
+import { Login, UserCredentialsParamType } from "../../../../../codegen/api";
 import {
   AUTH_PROXY_TAG,
   LOGIN_FAILURE_MSG,
@@ -20,6 +21,17 @@ interface AuthEventDetail extends UserData {
 // Define the class for the AuthProxyService
 export class AuthProxyService extends HTMLElement {
   // Method to handle login
+  //async formLogin(body: string): Promise<void> {
+  // async formLogin(body: UserCredentialsParamType): Promise<void> {
+  //   const response = await Login(body);
+
+  //   if (response.error) {
+  //     this.handleError(response.error, LOGIN_FAILURE_MSG);
+  //   } else if (response.data) {
+  //     this.processLogin({ success: response.data } as AuthEventDetail);
+  //   }
+  // }
+
   formLogin(body: string): void {
     fetch("https://localhost:7129/api/auth/login", {
       method: "POST",
@@ -93,6 +105,7 @@ export class AuthProxyService extends HTMLElement {
   };
 
   // Handle errors
+  //  private handleError = (message: string, eventType: string): void => {
   private handleError = (error: Error, eventType: string): void => {
     console.error("Authentication error:", error.message);
     this.dispatchEvent(
@@ -103,6 +116,17 @@ export class AuthProxyService extends HTMLElement {
       })
     );
   };
+
+  // private handleError = (error: Error, eventType: string): void => {
+  //   console.error("Authentication error:", error.message);
+  //   this.dispatchEvent(
+  //     new CustomEvent<AuthEventDetail>(eventType, {
+  //       detail: { error: error.message },
+  //       bubbles: true,
+  //       composed: true,
+  //     })
+  //   );
+  // };
 }
 
 // Ensure the custom element is defined only once

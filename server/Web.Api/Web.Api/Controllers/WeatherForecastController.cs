@@ -10,7 +10,7 @@ namespace Web.Api.Controllers
     {
 
         [HttpGet("getweatherforecast", Name = "GetWeatherForecast" )]
-        public IActionResult Get()
+        public IActionResult GetWeatherForecast()
         {
 
             var serviceResult = weatherForecastService.GetWeatherForecast();

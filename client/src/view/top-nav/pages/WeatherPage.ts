@@ -3,6 +3,8 @@ import { weatherDataManager } from "../../main/components";
 import { WeatherPageFilterDialog } from "../dialogs/WeatherPageFilterDialog";
 import { WEATHER_EDIT_MODAL_TAG } from "../../../common";
 import { WeatherPageEditDialog } from "../dialogs/WeatherPageEditDialog";
+import { GetWeatherForecast } from "../../../codegen/api";
+//import {GetWeatherForecast} from "../../../"
 
 type PredicateFunction = (item: IWeatherData, value: string) => boolean;
 
@@ -132,17 +134,12 @@ export default class WeatherTable
   }
 
   async fetchAndDisplayWeather(): Promise<void> {
-    try {
-      const response = await fetch(
-        "https://localhost:7129/api/weatherforecast"
-      ); // Adjust the endpoint as necessary
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
-      const weatherData = await response.json();
-      weatherDataManager.setState(weatherData); // Update global state
-    } catch (error) {
-      console.error("Failed to fetch weather data:", error);
+    const result = await GetWeatherForecast();
+
+    if (result.error) {
+      console.error("Error fetching weather forecast:", result.error);
+    } else if (result.data) {
+      weatherDataManager.setState(result.data); // Update global state(result.data);
     }
   }
 
