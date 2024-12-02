@@ -358,11 +358,13 @@ void WriteAPIMetaData(List<APIMetaData> apiMetaDataCollection)
     }
 }
 
-#if true
+#if false
 void WriteApiTSFiles(string path, OutputMode outputMode)
 {
     var output = new StringBuilder();
     var generatedTypes = new HashSet<string>(); // Track generated TypeScript types
+
+    output.AppendLine("import { appConfig } from '../src/appconfig';");
 
     foreach (var api in apiMetaDataCollection)
     {
@@ -398,6 +400,8 @@ void WriteApiTSFiles(string path, OutputMode outputMode)
             }
         }
 
+        var controllerName = ExtractControllerName(api.ControllerName);
+
         // Generate TypeScript function for the API method
         if (string.Equals(api.HttpVerb, "HttpGet", StringComparison.OrdinalIgnoreCase))
         {
@@ -405,7 +409,7 @@ void WriteApiTSFiles(string path, OutputMode outputMode)
             string paramList = string.Join(", ", api.Parameters.Select(p => $"{p.ParameterName}: {ConvertToTSType(p.ParameterType)}"));
 
             output.AppendLine($"export async function {api.MethodName}({paramList}): Promise<{strippedResultTypeName}[]> {{");
-            output.AppendLine($"    const response = await fetch(`/api/{api.RoutePath}?{queryParams}`, {{ method: 'get' }});");
+            output.AppendLine($"    const response = await fetch(`${{appConfig.domain}}/api/{controllerName}/{api.RoutePath}?{queryParams}`, {{ method: 'get' }});");
             output.AppendLine($"    return response.json();");
             output.AppendLine($"}}");
         }
@@ -429,7 +433,7 @@ void WriteApiTSFiles(string path, OutputMode outputMode)
                     generatedTypes.Add(paramsTypeName);
                 }
                 output.AppendLine($"export async function {api.MethodName}(params: {paramsTypeName}): Promise<{strippedResultTypeName}> {{");
-                output.AppendLine($"    const response = await fetch('/api/{api.RoutePath}', {{");
+                output.AppendLine($"    const response = await fetch(`${{appConfig.domain}}/api/{controllerName}/{api.RoutePath}`, {{");
                 output.AppendLine($"        method: 'post',");
                 output.AppendLine($"        headers: {{ 'Content-Type': 'application/json' }},");
                 output.AppendLine($"        body: JSON.stringify(params)");
@@ -440,7 +444,7 @@ void WriteApiTSFiles(string path, OutputMode outputMode)
             else
             {
                 output.AppendLine($"export async function {api.MethodName}({paramList}): Promise<{strippedResultTypeName}> {{");
-                output.AppendLine($"    const response = await fetch('/api/{api.RoutePath}', {{");
+                output.AppendLine($"    const response = await fetch(`${{appConfig.domain}}/api/{controllerName}/{api.RoutePath}`, {{");
                 output.AppendLine($"        method: 'post',");
                 output.AppendLine($"        headers: {{ 'Content-Type': 'application/json' }},");
                 output.AppendLine($"        body: JSON.stringify({{{bodyParams}}})");
@@ -465,6 +469,172 @@ void WriteApiTSFiles(string path, OutputMode outputMode)
             File.WriteAllText(path, output.ToString());
             break;
     }
+}
+
+
+
+#else
+void WriteApiTSFiles(string path, OutputMode outputMode)
+{
+    var output = new StringBuilder();
+    var generatedTypes = new HashSet<string>(); // Track generated TypeScript types
+
+    output.AppendLine("import { appConfig } from '../appconfig';");
+    output.AppendLine("export interface ApiResponse<T> {");
+    output.AppendLine("    data?: T;");
+    output.AppendLine("    error?: string;");
+    output.AppendLine("}");
+
+    foreach (var api in apiMetaDataCollection)
+    {
+        // Generate TypeScript interface for result type
+        string strippedResultTypeName = ConvertToTSTypeOrStripDomain(api.ResultTypeName);
+        if (!api.IsPrimitiveType && strippedResultTypeName != "void")
+        {
+            if (!generatedTypes.Contains(strippedResultTypeName))
+            {
+                output.AppendLine($"export interface {strippedResultTypeName} {{");
+                foreach (var property in api.ResultTypeProperties)
+                {
+                    output.AppendLine($"    {property.PropertyName}: {ConvertToTSType(property.PropertyType)};");
+                }
+                output.AppendLine($"}}");
+                generatedTypes.Add(strippedResultTypeName);
+            }
+        }
+
+        // Generate TypeScript interface for parameters if they are complex types
+        foreach (var parameter in api.Parameters)
+        {
+            string strippedParameterTypeName = ConvertToTSTypeOrStripDomain(parameter.ParameterType)+"ParamType";
+            if (!IsPrimitive(parameter.ParameterType) && !generatedTypes.Contains(strippedParameterTypeName))
+            {
+                output.AppendLine($"export interface {strippedParameterTypeName} {{");
+                foreach (var property in parameter.ParameterProperties)
+                {
+                    output.AppendLine($"    {property.PropertyName}: {ConvertToTSType(property.PropertyType)};");
+                }
+                output.AppendLine($"}}");
+                generatedTypes.Add(strippedParameterTypeName);
+            }
+        }
+
+        var controllerName = ExtractControllerName(api.ControllerName);
+
+        // Generate TypeScript function for the API method using Approach 2 (Return an Object with Data or Error)
+        if (string.Equals(api.HttpVerb, "HttpGet", StringComparison.OrdinalIgnoreCase))
+        {
+            string queryParams = string.Join("&", api.Parameters.Select(p => $"{p.ParameterName}=${{{p.ParameterName}}}"));
+            string paramList = string.Join(", ", api.Parameters.Select(p => $"{p.ParameterName}: {ConvertToTSType(p.ParameterType)}"));
+
+            output.AppendLine($"export async function {api.MethodName}({paramList}): Promise<ApiResponse<{strippedResultTypeName}[]>> {{");
+            output.AppendLine($"    try {{");
+            output.AppendLine($"        const response = await fetch(`${{appConfig.domain}}/api/{controllerName}/{api.RoutePath}?{queryParams}`, {{ method: 'get' }});");
+            output.AppendLine($"        if (!response.ok) {{");
+            output.AppendLine($"            return {{ error: `Failed with status code: ${{response.status}}` }};");
+            output.AppendLine($"        }}");
+            output.AppendLine($"        const data: {strippedResultTypeName}[] = await response.json();");
+            output.AppendLine($"        return {{ data }};");
+            output.AppendLine($"    }} catch (error) {{");
+            output.AppendLine($"        return {{ error: 'Failed to fetch data' }};");
+            output.AppendLine($"    }}");
+            output.AppendLine($"}}");
+        }
+        else if (string.Equals(api.HttpVerb, "HttpPost", StringComparison.OrdinalIgnoreCase))
+        {
+            string paramList = string.Join(", ", api.Parameters.Select(p => $"{p.ParameterName}: {ConvertToTSType(p.ParameterType)}"));
+            //string bodyParams = string.Join(", ", api.Parameters.Select(p => $"{p.ParameterName}: {p.ParameterName}"));
+            string bodyParams = string.Join(", ", api.Parameters.Select(p => $"{p.ParameterName}"));
+
+            // Generate TypeScript type for parameters if multiple
+            if (api.Parameters.Count > 1)
+            {
+                string paramsTypeName = $"{api.MethodName}Params";
+                if (!generatedTypes.Contains(paramsTypeName))
+                {
+                    output.AppendLine($"export interface {paramsTypeName} {{");
+                    foreach (var parameter in api.Parameters)
+                    {
+                        output.AppendLine($"    {parameter.ParameterName}: {ConvertToTSType(parameter.ParameterType)};");
+                    }
+                    output.AppendLine($"}}");
+                    generatedTypes.Add(paramsTypeName);
+                }
+                output.AppendLine($"export async function {api.MethodName}(params: {paramsTypeName}): Promise<ApiResponse<{strippedResultTypeName}>> {{");
+                output.AppendLine($"    try {{");
+                output.AppendLine($"        const response = await fetch(`${{appConfig.domain}}/api/{controllerName}/{api.RoutePath}`, {{");
+                output.AppendLine($"            method: 'post',");
+                output.AppendLine($"            headers: {{ 'Content-Type': 'application/json' }},");
+                output.AppendLine($"            body: JSON.stringify(params)");
+                output.AppendLine($"        }});");
+                output.AppendLine($"        if (!response.ok) {{");
+                output.AppendLine($"            return {{ error: `Failed with status code: ${{response.status}}` }};");
+                output.AppendLine($"        }}");
+                output.AppendLine($"        const data: {strippedResultTypeName} = await response.json();");
+                output.AppendLine($"        return {{ data }};");
+                output.AppendLine($"    }} catch (error) {{");
+                output.AppendLine($"        return {{ error: 'Failed to fetch data' }};");
+                output.AppendLine($"    }}");
+                output.AppendLine($"}}");
+            }
+            else
+            {
+                output.AppendLine($"export async function {api.MethodName}({paramList}): Promise<ApiResponse<{strippedResultTypeName}>> {{");
+                output.AppendLine($"    try {{");
+                output.AppendLine($"        const response = await fetch(`${{appConfig.domain}}/api/{controllerName}/{api.RoutePath}`, {{");
+                output.AppendLine($"            method: 'post',");
+                output.AppendLine($"            headers: {{ 'Content-Type': 'application/json' }},");
+                //output.AppendLine($"            body: JSON.stringify({{{bodyParams}}})");
+                var bodyParamsStr = (string.IsNullOrEmpty(bodyParams)) ? "\"\"" : $"JSON.stringify({bodyParams})";
+                output.AppendLine($"            body: {bodyParamsStr}");
+                output.AppendLine($"        }});");
+                output.AppendLine($"        if (!response.ok) {{");
+                output.AppendLine($"            return {{ error: `Failed with status code: ${{response.status}}` }};");
+                output.AppendLine($"        }}");
+                if (strippedResultTypeName != "void")
+                {
+                    output.AppendLine($"        const data: {strippedResultTypeName} = await response.json();");
+                    output.AppendLine($"        return {{ data }};");
+                }
+                else
+                {
+                    output.AppendLine($"        return {{ data: undefined }};");
+                }
+                output.AppendLine($"    }} catch (error) {{");
+                output.AppendLine($"        return {{ error: 'Failed to fetch data' }};");
+                output.AppendLine($"    }}");
+                output.AppendLine($"}}");
+            }
+        }
+    }
+
+    switch (outputMode)
+    {
+        case OutputMode.Console:
+            Console.WriteLine(output.ToString());
+            break;
+        case OutputMode.File:
+            File.WriteAllText(path, output.ToString());
+            break;
+        case OutputMode.Both:
+            Console.WriteLine(output.ToString());
+            File.WriteAllText(path, output.ToString());
+            break;
+    }
+}
+
+#endif
+
+string ExtractControllerName(string controllerName)
+{
+    // Remove the "Controller" suffix
+    const string suffix = "Controller";
+    if (controllerName.EndsWith("Controller"))
+    {
+        controllerName = controllerName.Substring(0, controllerName.Length - suffix.Length);
+    }
+    // Convert the extracted name to lowercase
+    return controllerName.ToLower();
 }
 
 string ConvertToTSTypeOrStripDomain(string typeName)
@@ -493,7 +663,6 @@ string ConvertToTSTypeOrStripDomain(string typeName)
     }
 }
 
-
 string StripDomain(string typeName)
 {
     if (string.IsNullOrEmpty(typeName))
@@ -504,10 +673,6 @@ string StripDomain(string typeName)
     var parts = typeName.Split('.');
     return parts.Length > 0 ? parts.Last() : typeName;
 }
-
-#else
-
-#endif
 
 bool IsPrimitive(string typeName)
 {

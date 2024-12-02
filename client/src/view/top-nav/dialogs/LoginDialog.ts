@@ -172,21 +172,17 @@ export class LoginDialog extends HTMLElement {
 
     this.clearError();
 
-    // Convert formData to JSON
-    // const body1: UserCredentialsParamType = {
-    //   Username: jsonData.username,
-    //   Password: jsonData.password,
-    // };
-
-    const body = JSON.stringify({
-      username: jsonData.username,
-      password: jsonData.password,
-    });
+    //Convert formData to JSON
+    const body: UserCredentialsParamType = {
+      Username: jsonData.username,
+      Password: jsonData.password,
+    };
 
     const authProxy = document.querySelector(
       AUTH_PROXY_TAG
     ) as AuthProxyService;
     if (authProxy) {
+      //      authProxy.formLogin(body); // Assuming login-dialog has a show method
       authProxy.formLogin(body); // Assuming login-dialog has a show method
     }
 
