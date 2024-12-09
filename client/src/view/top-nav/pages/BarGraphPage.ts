@@ -1,6 +1,7 @@
 // Assuming the interfaces are in the same directory or correctly referenced
 import { IRenderable } from "../../main/Interfaces/IRenderable";
 import { ILifecycleCallbacks } from "../../main/Interfaces/ILifecycleCallbacks";
+import { appConfig } from "../../../appconfig";
 
 export default class BarGraphPage
   extends HTMLElement
@@ -47,7 +48,7 @@ export default class BarGraphPage
   async setupSignalR(): Promise<void> {
     // Build and start the SignalR connection
     this.connection = new signalR.HubConnectionBuilder()
-      .withUrl("https://localhost:7129/graphhub") // Adjust this URL to your SignalR Hub endpoint
+      .withUrl(`${appConfig.domain}/graphhub`) // Adjust this URL to your SignalR Hub endpoint
       .configureLogging(signalR.LogLevel.Debug)
       .build();
 

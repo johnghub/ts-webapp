@@ -524,21 +524,45 @@ void WriteApiTSFiles(string path, OutputMode outputMode)
         // Generate TypeScript function for the API method using Approach 2 (Return an Object with Data or Error)
         if (string.Equals(api.HttpVerb, "HttpGet", StringComparison.OrdinalIgnoreCase))
         {
-            string queryParams = string.Join("&", api.Parameters.Select(p => $"{p.ParameterName}=${{{p.ParameterName}}}"));
-            string paramList = string.Join(", ", api.Parameters.Select(p => $"{p.ParameterName}: {ConvertToTSType(p.ParameterType)}"));
+            string queryParams = string.Join("&", api.Parameters.SelectMany(param => param.ParameterProperties.Select(prop => $"{prop.PropertyName}=${{{prop.PropertyName}}}")));
+            string paramList = string.Join(", ", api.Parameters.SelectMany(param => param.ParameterProperties.Select(prop => $"{prop.PropertyName}: {ConvertToTSType(prop.PropertyType)}")));
 
             output.AppendLine($"export async function {api.MethodName}({paramList}): Promise<ApiResponse<{strippedResultTypeName}[]>> {{");
             output.AppendLine($"    try {{");
-            output.AppendLine($"        const response = await fetch(`${{appConfig.domain}}/api/{controllerName}/{api.RoutePath}?{queryParams}`, {{ method: 'get' }});");
+            output.AppendLine($"        const query = `{queryParams}`;");
+            output.AppendLine($"        const response = await fetch(`${{appConfig.domain}}/api/{controllerName}/{api.RoutePath}?${{query}}`, {{ method: 'get' }});");
             output.AppendLine($"        if (!response.ok) {{");
             output.AppendLine($"            return {{ error: `Failed with status code: ${{response.status}}` }};");
             output.AppendLine($"        }}");
-            output.AppendLine($"        const data: {strippedResultTypeName}[] = await response.json();");
-            output.AppendLine($"        return {{ data }};");
+            if (strippedResultTypeName != "void")
+            {
+                output.AppendLine($"        const data: {strippedResultTypeName}[] = await response.json();");
+                output.AppendLine($"        return {{ data }};");
+            }
+            else
+            {
+                output.AppendLine($"        return {{ data: undefined }};");
+            }
             output.AppendLine($"    }} catch (error) {{");
             output.AppendLine($"        return {{ error: 'Failed to fetch data' }};");
             output.AppendLine($"    }}");
             output.AppendLine($"}}");
+
+            //string queryParams = string.Join("&", api.Parameters.Select(p => $"{p.ParameterName}=${{{p.ParameterName}}}"));
+            //string paramList = string.Join(", ", api.Parameters.Select(p => $"{p.ParameterName}: {ConvertToTSType(p.ParameterType)}"));
+
+            //output.AppendLine($"export async function {api.MethodName}({paramList}): Promise<ApiResponse<{strippedResultTypeName}[]>> {{");
+            //output.AppendLine($"    try {{");
+            //output.AppendLine($"        const response = await fetch(`${{appConfig.domain}}/api/{controllerName}/{api.RoutePath}?{queryParams}`, {{ method: 'get' }});");
+            //output.AppendLine($"        if (!response.ok) {{");
+            //output.AppendLine($"            return {{ error: `Failed with status code: ${{response.status}}` }};");
+            //output.AppendLine($"        }}");
+            //output.AppendLine($"        const data: {strippedResultTypeName}[] = await response.json();");
+            //output.AppendLine($"        return {{ data }};");
+            //output.AppendLine($"    }} catch (error) {{");
+            //output.AppendLine($"        return {{ error: 'Failed to fetch data' }};");
+            //output.AppendLine($"    }}");
+            //output.AppendLine($"}}");
         }
         else if (string.Equals(api.HttpVerb, "HttpPost", StringComparison.OrdinalIgnoreCase))
         {

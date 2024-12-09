@@ -1,3 +1,4 @@
+import { GetWeather, WeatherRequestParamType } from "../../../codegen/api";
 import { AUTH_STATE_SERVICE_TAG } from "../../../common";
 import { IConnectedCallback } from "../../main";
 import { IRenderable } from "../../main";
@@ -24,24 +25,41 @@ export default class AuthWeatherPage
 
   async fetchWeatherData() {
     try {
-      const response = await fetch(
-        "https://localhost:7129/api/weather/getweather?Location=ValidLocation",
-        {
-          method: "GET",
-          credentials: "include", // Ensures cookies are sent with the request for authentication
-        }
-      );
+      const request: WeatherRequestParamType = { Location: "ValidLocation" }; // Create the request object for the API
+      const response = await GetWeather(request.Location);
 
-      if (!response.ok) {
-        throw new Error("Failed to fetch weather data");
+      if (response.error) {
+        console.error("Error fetching weather data:", response.error);
+        this.renderError(response.error);
+      } else if (response.data) {
+        this._weatherData = response.data;
       }
-
-      this._weatherData = await response.json();
     } catch (error: any) {
-      console.error("Error fetching weather data:", error);
+      console.error("Unexpected error fetching weather data:", error);
       this.renderError(error.message);
     }
   }
+
+  // async fetchWeatherData() {
+  //   try {
+  //     const response = await fetch(
+  //       "https://localhost:7129/api/weather/getweather?Location=ValidLocation",
+  //       {
+  //         method: "GET",
+  //         credentials: "include", // Ensures cookies are sent with the request for authentication
+  //       }
+  //     );
+
+  //     if (!response.ok) {
+  //       throw new Error("Failed to fetch weather data");
+  //     }
+
+  //     this._weatherData = await response.json();
+  //   } catch (error: any) {
+  //     console.error("Error fetching weather data:", error);
+  //     this.renderError(error.message);
+  //   }
+  // }
 
   renderError(errorMessage: string) {
     this.innerHTML = `
