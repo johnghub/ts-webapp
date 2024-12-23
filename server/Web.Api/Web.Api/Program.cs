@@ -30,11 +30,42 @@ builder.Services.AddAuthentication(options =>
 {
     options.Cookie.HttpOnly = true;
     options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-    options.Cookie.SameSite = SameSiteMode.None;
+    options.Cookie.SameSite = SameSiteMode.None; // Required for cross-origin requests
+    //options.Cookie.SameSite = SameSiteMode.Strict; // 
     options.Cookie.Name = "YourAuthCookie";
     options.LoginPath = "/login"; // Path for login API
     options.LogoutPath = "/logout"; // Path for logout API
     options.AccessDeniedPath = "/access-denied";
+    // Other cross-domain cookie testing code
+    options.ExpireTimeSpan = TimeSpan.FromHours(1); // Adjust as necessary
+    options.SlidingExpiration = true; // Renew the cookie if close to expiration
+    options.Cookie.Path = "/";
+    options.Cookie.Domain = "localhost";
+    options.Events = new CookieAuthenticationEvents
+    {
+        OnValidatePrincipal = context =>
+        {
+            // Debug claims on cookie validation
+            Console.WriteLine("Validating principal:");
+            foreach (var claim in context.Principal.Claims)
+            {
+                Console.WriteLine($"{claim.Type}: {claim.Value}");
+            }
+            return Task.CompletedTask;
+        }
+    };
+    options.Events = new CookieAuthenticationEvents
+    {
+        OnSigningIn = context =>
+        {
+            Console.WriteLine("Signing in with claims:");
+            foreach (var claim in context.Principal.Claims)
+            {
+                Console.WriteLine($"{claim.Type}: {claim.Value}");
+            }
+            return Task.CompletedTask;
+        }
+    };
 });
 
 builder.Services.AddCors(options =>
@@ -50,6 +81,20 @@ builder.Services.AddCors(options =>
 builder.Services.RegisterDomainServices("Web.Api.Domain");
 
 var app = builder.Build();
+
+app.Use(async (context, next) =>
+{
+    var cookie = context.Request.Cookies["YourAuthCookie"];
+    if (string.IsNullOrEmpty(cookie))
+    {
+        Console.WriteLine("Cookie is missing");
+    }
+    else
+    {
+        Console.WriteLine($"Cookie received: {cookie}");
+    }
+    await next();
+});
 
 // Use CORS with the specified policy
 app.UseCors("DevCorsPolicy");
@@ -73,6 +118,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication(); // TODO: Is this required?
 app.UseAuthorization();
 
 app.Use(async (context, next) =>

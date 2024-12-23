@@ -7,11 +7,20 @@ namespace Web.Api.Controllers.Secure
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class WeatherController(IWeatherService weatherService) : PublicController //SecureController
+    public class WeatherController(IWeatherService weatherService) : PublicController // SecureController //  
     {
         [HttpGet("getweather", Name = "getweather")]
         public IActionResult GetWeather([FromQuery] WeatherRequest request)
         {
+
+            if (!User.Identity.IsAuthenticated)
+            {
+                foreach (var claim in User.Claims)
+                    Console.WriteLine($"{claim.Type}: {claim.Value}");
+                
+                return Forbid();
+            }
+
             var validationResponse = ValidateModelState();
             if (validationResponse != null)
                 return validationResponse;
