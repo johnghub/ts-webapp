@@ -13,24 +13,13 @@ namespace Web.Api.Controllers.Secure
         public IActionResult GetWeather([FromQuery] WeatherRequest request)
         {
 
-            if (!User.Identity.IsAuthenticated)
-            {
-                foreach (var claim in User.Claims)
-                    Console.WriteLine($"{claim.Type}: {claim.Value}");
-                
-                return Forbid();
-            }
-
-            var validationResponse = ValidateModelState();
-            if (validationResponse != null)
-                return validationResponse;
+            var authResult = EnsureAuthenticated();
+            if (authResult is UnauthorizedObjectResult)
+                return authResult;
 
             var serviceResult = weatherService.GetWeather(request.Location);
-            var serviceResponse = HandleServiceResult(serviceResult);
-            if (serviceResponse != null)
-                return serviceResponse;
+            return HandleResult(serviceResult);
 
-            return Ok(serviceResult.Data);
         }
     }
 }

@@ -19,16 +19,26 @@ namespace Web.Api.Infrastructure.Controller
         /// <returns>
         /// BadRequestObjectResult containing validation errors if ModelState is invalid; otherwise, null.
         /// </returns>
-        protected IActionResult ValidateModelState()
+        protected IActionResult HandleResult<T>(ServiceResult<T> result)
         {
             if (!ModelState.IsValid)
             {
                 var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
                 return BadRequest(new { Errors = errors });
-                //return BadRequest(ModelState);
             }
-            return null;
+
+            if (!result.Success)
+            {
+                foreach (var error in result.Errors)
+                {
+                    ModelState.AddModelError("ServiceError", error);
+                }
+                return BadRequest(ModelState);
+            }
+
+            return Ok(result.Data);
         }
+
 
         /// <summary>
         /// Validates the result from a service call. This method checks if the result indicates success.
@@ -40,23 +50,19 @@ namespace Web.Api.Infrastructure.Controller
         /// memory allocation and garbage collection overhead, which is beneficial in high-performance environments
         /// where minimizing latency and resource usage is critical. The use of null to indicate "no errors"
         /// simplifies further processing in controller actions.
+        /// Key is set to a unique value that is also Kusto query friendly
         /// </summary>
         /// <typeparam name="T">The type of data encapsulated in the service result.</typeparam>
         /// <param name="result">The service result object containing success status and potential errors.</param>
         /// <returns>
         /// BadRequestObjectResult containing errors if the service result is unsuccessful; otherwise, null.
         /// </returns>
-        protected IActionResult HandleServiceResult<T>(ServiceResult<T> result)
+        protected IActionResult EnsureAuthenticated()
         {
-            if (!result.Success)
-            {
-                foreach (var error in result.Errors)
-                {
-                    ModelState.AddModelError("", error);
-                }
-                return BadRequest(ModelState);
-            }
-            return null;
+            if (User?.Identity?.IsAuthenticated == true)
+                return Ok();
+
+            return Unauthorized(new { Error = "Unauthorized access." });
         }
     }
 }
