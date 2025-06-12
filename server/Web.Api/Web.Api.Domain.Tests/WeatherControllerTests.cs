@@ -5,7 +5,6 @@ using Web.Api.Domain.Services;
 using Web.Api.Controllers.Secure;
 using Web.Api.Domain.Models;
 using System.Security.Claims;
-using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace Web.Api.Domain.Tests
 {
