@@ -11,6 +11,10 @@ namespace Web.Api.Domain.Services.Auth
     {
         public async Task<ServiceResult<bool>> AuthenticateAsync(IAuthCredentials credentials)
         {
+
+            if (credentials == null)
+                return ServiceResult<bool>.FailureResult(["Credentials must not be null."]);
+
             var provider = authProviders.FirstOrDefault(p => p.CanHandle(credentials));
 
             if (provider == null)
