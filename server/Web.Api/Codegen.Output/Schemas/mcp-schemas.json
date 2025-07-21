@@ -1,0 +1,65 @@
+﻿{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": [ "$schema", "items" ],
+  "properties": {
+    "$schema": { "type": "string" },
+    "items": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/ApiFunctionContext"
+      }
+    }
+  },
+  "definitions": {
+    "ApiFunctionContext": {
+      "type": "object",
+      "required": [ "function", "metadata" ],
+      "properties": {
+        "function": {
+          "type": "object",
+          "required": [ "name", "parameters", "returnType" ],
+          "properties": {
+            "name": { "type": "string" },
+            "parameters": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [ "name", "type" ],
+                "properties": {
+                  "name": { "type": "string" },
+                  "type": { "type": "string" }
+                }
+              }
+            },
+            "returnType": { "type": "string" }
+          }
+        },
+        "metadata": {
+          "type": "object",
+          "properties": {
+            "authScheme": {
+              "type": "string",
+              "enum": [ "OAuth", "Cookie", "ClientCertificate" ]
+            },
+            "intent": {
+              "type": "string",
+              "enum": [ "UI", "Machine" ]
+            },
+            "proxyType": {
+              "type": "string",
+              "enum": [ "TypeScript", "Python", "Kotlin", "Swift" ]
+            },
+            "aiHint": {
+              "type": "string"
+            }
+          }
+        },
+        "goals": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    }
+  }
+}

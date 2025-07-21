@@ -443,9 +443,15 @@ void WriteMcpContextJson(List<APIMetaData> collection, string outputPath)
                 : "Support machine-based automation",
             "Use AIHint for naming, mock generation, or documentation"
         }
-    });
+    }).ToList();
 
-    var json = JsonSerializer.Serialize(mcpObjects, new JsonSerializerOptions
+    var mcpRoot = new Dictionary<string, object>
+    {
+        ["$schema"] = "./schemas/mcp-schema.json",
+        ["items"] = mcpObjects
+    };
+
+    var json = JsonSerializer.Serialize(mcpRoot, new JsonSerializerOptions
     {
         WriteIndented = true
     });
