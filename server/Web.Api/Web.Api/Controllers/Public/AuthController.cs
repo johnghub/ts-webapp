@@ -1,9 +1,10 @@
 ﻿using AuthProvider.Models;
+using Codegen.Common.Attributes;
+using Codegen.Common.Infrastructure;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
-using Web.Api.Domain.Models;
 using Web.Api.Domain.Services.Auth;
 using Web.Api.Infrastructure.Controller;
 
@@ -14,6 +15,10 @@ namespace Web.Api.Controllers.Public
     public class AuthController(IUserAuthService authService) : PublicController
     {
         [HttpPost("login", Name = "login")]
+        [GenerateProxy(AuthScheme = AuthScheme.Anonymous,
+            Intent = ClientIntent.UI,
+            ProxyType = ProxyType.TypeScript,
+            AIHint = "This is a login endpoint. Issuing an HTTP request correct credentials will authenticate the user.")]
         public async Task<IActionResult> Login([FromBody] UserCredentials credentials)
         {
             // Here, implement your user validation logic
@@ -38,6 +43,10 @@ namespace Web.Api.Controllers.Public
         }
 
         [HttpPost("logout", Name="logout")]
+        [GenerateProxy(AuthScheme = AuthScheme.Anonymous,
+            Intent = ClientIntent.UI,
+            ProxyType = ProxyType.TypeScript,
+            AIHint = "This is a logout endpoint. Issuing an HTTP request to it will log out the user.")]
         public async Task<IActionResult> Logout()
         {
             //await HttpContext.SignOutAsync("CookieAuth");

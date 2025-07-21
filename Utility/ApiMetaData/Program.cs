@@ -1,12 +1,14 @@
 ﻿// See https://aka.ms/new-console-template for more information
+using ApiMetaData.Infrastructure;
+using ApiMetaData.Models;
+using Codegen.Common.Infrastructure;
+using CommandLine;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Reflection;
-using CommandLine;
-using ApiMetaData.Models;
-using ApiMetaData.Infrastructure;
 using System.Text;
+using System.Text.Json;
 
 var executionDirectory = AppDomain.CurrentDomain.BaseDirectory;
 Console.WriteLine($"Execution Directory: {executionDirectory}");
@@ -21,6 +23,7 @@ Parser.Default.ParseArguments<Options>(args)
         var assemblyPath = Path.IsPathRooted(opts.AssemblyPath) ? opts.AssemblyPath : Path.Combine(executionDirectory, opts.AssemblyPath);
         var parameterNamespace = opts.Namespace;
         var tsFilePath = opts.TSFilePath;
+        var mcpFilePath = opts.MCPFilePath;
         var outputMode = opts.OutputMode;
 
         if (!Directory.Exists(directoryPath))
@@ -48,6 +51,12 @@ Parser.Default.ParseArguments<Options>(args)
 Writing meta data collection
 ========================================");
         WriteAPIMetaData(apiMetaDataCollection);
+
+        Console.WriteLine(@"========================================
+Writing MCP file
+========================================");
+        var mcpOutputPath = Path.Combine(Path.GetDirectoryName(mcpFilePath) ?? ".", "api.mcp.json");
+        WriteMcpContextJson(apiMetaDataCollection, mcpOutputPath);
 
         Console.WriteLine(@">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 Writing TypeScript file
@@ -115,8 +124,51 @@ void ProcessControllerFile(string filePath, Assembly assembly, string parameterN
                 }
 
                 // Extract the HTTP verb
-                var httpVerb = httpVerbAttribute.Name.ToString();
-                Console.WriteLine($"  HTTP Verb: {httpVerb}");
+                var httpVerbName = httpVerbAttribute.Name.ToString();
+                if (!Enum.TryParse<HttpVerb>(
+                        httpVerbAttribute.Name.ToString().Replace("Http", "", StringComparison.OrdinalIgnoreCase),
+                        ignoreCase: true,
+                        out var parsedHttpVerb))
+                {
+                    Console.WriteLine($"  Warning: Could not parse HTTP verb '{httpVerbName}' into HttpVerb enum.");
+                    continue;
+                }
+
+                // === Begin GenerateProxy attribute extraction ===
+                AuthScheme? parsedAuthScheme = null;
+                ClientIntent? parsedIntent = null;
+                ProxyType? parsedProxyType = null;
+                string? parsedAIHint = null;
+
+                var generateProxyAttr = model.GetDeclaredSymbol(method)?
+                    .GetAttributes()
+                    .FirstOrDefault(attr => attr.AttributeClass?.Name == "GenerateProxyAttribute");
+
+                if (generateProxyAttr != null)
+                {
+                    foreach (var arg in generateProxyAttr.NamedArguments)
+                    {
+                        switch (arg.Key)
+                        {
+                            case "AuthScheme" when arg.Value.Value is int val:
+                                parsedAuthScheme = (AuthScheme)val;
+                                break;
+                            case "Intent" when arg.Value.Value is int val:
+                                parsedIntent = (ClientIntent)val;
+                                break;
+                            case "ProxyType" when arg.Value.Value is int val:
+                                parsedProxyType = (ProxyType)val;
+                                break;
+                            case "AIHint" when arg.Value.Value is string str:
+                                parsedAIHint = str;
+                                break;
+                        }
+                    }
+                }
+                Console.WriteLine($"  AuthScheme: {parsedAuthScheme}");
+                Console.WriteLine($"  Intent: {parsedIntent}");
+
+                // === End GenerateProxy attribute extraction ===
 
                 // Extract RoutePath if specified in the attribute
                 string routePath = null;
@@ -294,7 +346,7 @@ void ProcessControllerFile(string filePath, Assembly assembly, string parameterN
                 {
                     ControllerName = classNode.Identifier.Text,
                     MethodName = method.Identifier.Text,
-                    HttpVerb = httpVerb,
+                    HttpVerb = parsedHttpVerb,
                     RoutePath = routePath ?? string.Empty,
                     ControllerRoutePath = controllerRoutePath ?? "api/[controller]",
 
@@ -304,6 +356,10 @@ void ProcessControllerFile(string filePath, Assembly assembly, string parameterN
                     PrimitiveType = resultMetaData.PrimitiveType,
                     ResultTypeProperties = resultMetaData.ResultTypeProperties,
                     TypeChain = resultMetaData.TypeChain,
+                    AuthScheme = parsedAuthScheme,
+                    Intent = parsedIntent,
+                    AIHint = parsedAIHint,
+                    ProxyType = parsedProxyType
                 };
 
                 apiMetaDataCollection.Add(apiMetaData);
@@ -357,6 +413,46 @@ void WriteAPIMetaData(List<APIMetaData> apiMetaDataCollection)
         }
     }
 }
+
+void WriteMcpContextJson(List<APIMetaData> collection, string outputPath)
+{
+    var mcpObjects = collection.Select(api => new
+    {
+        function = new
+        {
+            name = api.MethodName,
+            parameters = api.Parameters?.Select(p => new
+            {
+                name = p.ParameterName,
+                type = p.ParameterType
+            }) ?? Enumerable.Empty<object>(),
+            returnType = api.ResultTypeName
+        },
+        metadata = new
+        {
+            authScheme = api.AuthScheme?.ToString(),
+            intent = api.Intent?.ToString(),
+            proxyType = api.ProxyType?.ToString(),
+            aiHint = api.AIHint
+        },
+        goals = new[]
+        {
+            "Generate a client proxy for this endpoint",
+            api.Intent == ClientIntent.UI
+                ? "Support interactive UI integration"
+                : "Support machine-based automation",
+            "Use AIHint for naming, mock generation, or documentation"
+        }
+    });
+
+    var json = JsonSerializer.Serialize(mcpObjects, new JsonSerializerOptions
+    {
+        WriteIndented = true
+    });
+
+    File.WriteAllText(outputPath, json);
+}
+
 
 #if false
 void WriteApiTSFiles(string path, OutputMode outputMode)
@@ -522,7 +618,7 @@ void WriteApiTSFiles(string path, OutputMode outputMode)
         var controllerName = ExtractControllerName(api.ControllerName);
 
         // Generate TypeScript function for the API method using Approach 2 (Return an Object with Data or Error)
-        if (string.Equals(api.HttpVerb, "HttpGet", StringComparison.OrdinalIgnoreCase))
+        if (api.HttpVerb == HttpVerb.GET)
         {
             string queryParams = string.Join("&", api.Parameters.SelectMany(param => param.ParameterProperties.Select(prop => $"{prop.PropertyName}=${{{prop.PropertyName}}}")));
             string paramList = string.Join(", ", api.Parameters.SelectMany(param => param.ParameterProperties.Select(prop => $"{prop.PropertyName}: {ConvertToTSType(prop.PropertyType)}")));
@@ -564,7 +660,7 @@ void WriteApiTSFiles(string path, OutputMode outputMode)
             //output.AppendLine($"    }}");
             //output.AppendLine($"}}");
         }
-        else if (string.Equals(api.HttpVerb, "HttpPost", StringComparison.OrdinalIgnoreCase))
+        else if (api.HttpVerb == HttpVerb.POST)
         {
             string paramList = string.Join(", ", api.Parameters.Select(p => $"{p.ParameterName}: {ConvertToTSType(p.ParameterType)}"));
             //string bodyParams = string.Join(", ", api.Parameters.Select(p => $"{p.ParameterName}: {p.ParameterName}"));
@@ -773,6 +869,9 @@ public class Options
 
     [Option('n', "namespace", Required = true, HelpText = "Namespace of the parameter object type.")]
     public required string Namespace { get; set; }
+
+    [Option('m', "mcp", Required = false,  HelpText = "Path to the MCP file output directory.")]
+    public required string MCPFilePath { get; set; }
 
     [Option('t', "typescript", Required = true, HelpText = "Path to the TypeScript output file.")]
     public required string TSFilePath { get; set; }

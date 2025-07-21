@@ -4,18 +4,20 @@
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="8.1.2" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.3" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Codegen.Common\Codegen.Common.csproj" />
+    <ProjectReference Include="..\Web.Api.Common\Web.Api.Common.csproj" />
     <ProjectReference Include="..\Web.Api.Domain\Web.Api.Domain.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Infrastructure\Attributes\" />
     <Folder Include="wwwroot\" />
   </ItemGroup>
 

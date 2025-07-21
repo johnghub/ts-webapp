@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 
-namespace Web.Api.Domain.Infrastructure
+namespace Web.Api.Common.DI
 {
 
     [AttributeUsage(AttributeTargets.Class, Inherited = false)]

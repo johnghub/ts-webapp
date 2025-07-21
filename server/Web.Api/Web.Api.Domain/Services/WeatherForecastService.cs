@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Web.Api.Common.DI;
 using Web.Api.Domain.Infrastructure;
 using Web.Api.Domain.Models;
 
@@ -13,7 +14,7 @@ namespace Web.Api.Domain.Services
         ];
 
 
-        [ReturnTypeDiscovery]
+       // [ReturnTypeDiscovery]
         public ServiceResult<IEnumerable<WeatherForecast>> GetWeatherForecast()
         {
             var result =  Enumerable.Range(1, 10).Select(index => new WeatherForecast
@@ -31,7 +32,7 @@ namespace Web.Api.Domain.Services
 
     public interface IWeatherForecastService
     {
-        [ReturnTypeDiscovery]
+        //[ReturnTypeDiscovery]
         ServiceResult<IEnumerable<WeatherForecast>> GetWeatherForecast();
     }
 }

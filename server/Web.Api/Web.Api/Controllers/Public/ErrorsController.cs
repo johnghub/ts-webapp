@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Codegen.Common.Attributes;
+using Codegen.Common.Infrastructure;
+using Microsoft.AspNetCore.Mvc;
 using Web.Api.Infrastructure.Controller;
 
 namespace Web.Api.Controllers.Public
@@ -9,6 +11,10 @@ namespace Web.Api.Controllers.Public
     {
         //[Route("access-denied")]
         [HttpGet("access-denied")]
+        [GenerateProxy(AuthScheme = AuthScheme.Anonymous, 
+            Intent = ClientIntent.UI,
+            ProxyType = ProxyType.TypeScript,
+            AIHint = "This is a login endpoint. If the login fails, this error response will manage the access denied response.")]
         public IActionResult AccessDenied()
         {
             // Log the access denied event, if necessary

@@ -1,7 +1,7 @@
-﻿using System.Reflection;
-using Web.Api.Common.DI;
+﻿using Microsoft.Extensions.DependencyInjection;
+using System.Reflection;
 
-namespace Web.Api.Infrastructure.DI
+namespace Web.Api.Common.DI
 {
     public static class ServiceRegistration
     {

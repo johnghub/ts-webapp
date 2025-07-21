@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Web.Api.Domain.Infrastructure;
+using Web.Api.Common.DI;
 using Web.Api.Domain.Models;
 
 namespace Web.Api.Domain.Services
@@ -9,7 +9,7 @@ namespace Web.Api.Domain.Services
     [RegisterAsService(typeof(IWeatherService), ServiceLifetime.Transient)]
     public class WeatherService(ILogger<WeatherService> logger) : IWeatherService
     {
-        [ReturnTypeDiscovery]
+        //[ReturnTypeDiscovery]
         public ServiceResult<WeatherData> GetWeather(string location)
         {
             if (location != "ValidLocation")
@@ -25,7 +25,7 @@ namespace Web.Api.Domain.Services
 
     public interface IWeatherService
     {
-        [ReturnTypeDiscovery]
+        //[ReturnTypeDiscovery]
         ServiceResult<WeatherData> GetWeather(string location);
     }
 }
