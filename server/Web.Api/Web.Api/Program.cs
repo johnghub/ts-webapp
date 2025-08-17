@@ -1,19 +1,14 @@
+using AuthProvider.DI;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Web.Api.Domain.Services;
-using Web.Api.Infrastructure.DI;
+using Web.Api.Common.DI;
+using Web.Api.Domain.DI;
 using Web.Api.SignalR;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Register IWeatherService as a scoped service, typical for database-related services
-//builder.Services.AddScoped<IWeatherService, WeatherService>();
-
-// Alternatively, register IWeatherService as a singleton if it does not maintain state
-// builder.Services.AddSingleton<IWeatherService, WeatherService>();
-
+// TODO: Should be able to delete this. It appears all DLLs have to be forced loaded to ensure services are registered with DI container
 // Or register as transient if a new instance is needed every time it's injected
-builder.Services.AddTransient<IWeatherService, WeatherService>();
+//builder.Services.AddTransient<IWeatherService, WeatherService>();
 
 builder.Services.AddControllers();
 builder.Services.AddSignalR();
@@ -77,8 +72,13 @@ builder.Services.AddCors(options =>
         .AllowCredentials());
 });
 
+// Force load assembly to ensure all DI registrations are processed
+// TODO: This is a workaround to ensure all services are registered. Ideally, we should not need this. Maybe...
+_ = typeof(AuthProviderStartup).Assembly;
+_ = typeof(DomainStartup).Assembly;
+
 // Register services from the Domain project
-builder.Services.RegisterDomainServices("Web.Api.Domain");
+builder.Services.RegisterDomainServices();
 
 var app = builder.Build();
 

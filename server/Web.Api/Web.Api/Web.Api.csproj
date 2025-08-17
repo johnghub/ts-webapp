@@ -15,9 +15,11 @@
     <ProjectReference Include="..\Codegen.Common\Codegen.Common.csproj" />
     <ProjectReference Include="..\Web.Api.Common\Web.Api.Common.csproj" />
     <ProjectReference Include="..\Web.Api.Domain\Web.Api.Domain.csproj" />
+    <ProjectReference Include="..\Web.Api.Providers\AuthProvider\AuthProvider.csproj" />
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Infrastructure\DI\" />
     <Folder Include="wwwroot\" />
   </ItemGroup>
 
