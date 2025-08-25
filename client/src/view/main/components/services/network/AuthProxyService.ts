@@ -22,6 +22,12 @@ interface AuthEventDetail extends UserData {
   success: boolean;
 }
 
+export type LoginResponse = {
+  success: boolean;
+  message: string;
+  user: { name: string };
+};
+
 // Define the class for the AuthProxyService
 export class AuthProxyService extends HTMLElement {
   //Method to handle login
@@ -31,7 +37,13 @@ export class AuthProxyService extends HTMLElement {
     if (response.error) {
       this.handleError(response.error, LOGIN_FAILURE_MSG);
     } else if (response.data) {
-      this.processLogin({ success: response.data } as AuthEventDetail);
+      const authDetail: AuthEventDetail = {
+        success: response.data.success,
+        user: response.data.user ? response.data.user.name : null,
+        isAuthenticated: false, // Will be set to true if login is successful
+      };
+
+      this.processLogin(authDetail);
     }
   }
 

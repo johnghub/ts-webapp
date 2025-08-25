@@ -19,7 +19,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Infrastructure\DI\" />
     <Folder Include="wwwroot\" />
   </ItemGroup>
 

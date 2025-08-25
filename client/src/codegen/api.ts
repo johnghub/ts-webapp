@@ -1,4 +1,5 @@
 import { appConfig } from "../appconfig";
+import { LoginResponse } from "../view/main/components/services/network/AuthProxyService";
 export interface ApiResponse<T> {
   data?: T;
   error?: string;
@@ -17,7 +18,10 @@ export async function GetWeatherForecast(): Promise<
     const query = ``;
     const response = await fetch(
       `${appConfig.domain}/api/weatherforecast/getweatherforecast?${query}`,
-      { method: "get" }
+      {
+        method: "get",
+        // TODO: Include credentials if needed using autogen code
+      }
     );
     if (!response.ok) {
       return { error: `Failed with status code: ${response.status}` };
@@ -28,23 +32,24 @@ export async function GetWeatherForecast(): Promise<
     return { error: "Failed to fetch data" };
   }
 }
-export interface UserCredentialsParamType {
-  Username: string;
-  Password: string;
-}
+export interface UserCredentialsParamType {}
 export async function Login(
-  credentials: UserCredentialsParamType
-): Promise<ApiResponse<boolean>> {
+  credentials: any
+): Promise<ApiResponse<LoginResponse>> {
   try {
     const response = await fetch(`${appConfig.domain}/api/auth/login`, {
       method: "post",
       headers: { "Content-Type": "application/json" },
+      credentials: "include",
       body: JSON.stringify(credentials),
     });
+
     if (!response.ok) {
       return { error: `Failed with status code: ${response.status}` };
     }
-    const data: boolean = await response.json();
+    // TODO: Data should be structured by codegen to return a sucess property as true or false
+
+    const data: LoginResponse = await response.json();
     return { data };
   } catch (error) {
     return { error: "Failed to fetch data" };
