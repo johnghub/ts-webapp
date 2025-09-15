@@ -21,8 +21,6 @@ namespace Web.Api.Controllers.Public
             AIHint = "This is a login endpoint. Issuing an HTTP request correct credentials will authenticate the user.")]
         public async Task<IActionResult> Login([FromBody] UserCredentials credentials)
         {
-            // Here, implement your user validation logic
-            //var isValidUser = true;// (credentials.Username == "test" && credentials.Password == "password");
             var isValidUser = await authService.AuthenticateAsync(credentials);
 
             if (!isValidUser.Success)

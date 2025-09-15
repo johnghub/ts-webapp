@@ -35,7 +35,7 @@ builder.Services.AddAuthentication(options =>
     options.ExpireTimeSpan = TimeSpan.FromHours(1); // Adjust as necessary
     options.SlidingExpiration = true; // Renew the cookie if close to expiration
     options.Cookie.Path = "/";
-    options.Cookie.Domain = "localhost";
+    //options.Cookie.Domain = "localhost";
     options.Events = new CookieAuthenticationEvents
     {
         OnValidatePrincipal = context =>

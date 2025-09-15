@@ -9,13 +9,12 @@ namespace Web.Api.Domain.Services
     [RegisterAsService(typeof(IWeatherService), ServiceLifetime.Transient)]
     public class WeatherService(ILogger<WeatherService> logger) : IWeatherService
     {
-        //[ReturnTypeDiscovery]
         public ServiceResult<WeatherData> GetWeather(string location)
         {
             if (location != "ValidLocation")
             {
                 var locationError = $"Weather request failed: Location is {(string.IsNullOrEmpty(location) ? "not set" : "not valid")}.";
-                logger.LogInformation(locationError);
+                logger.LogInformation("Weather request failed: Location is {LocationStatus}.", string.IsNullOrEmpty(location) ? "not set" : "not valid");
                 return ServiceResult<WeatherData>.FailureResult([locationError]);
             }
 

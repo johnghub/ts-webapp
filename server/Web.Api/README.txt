@@ -1,6 +1,21 @@
 
-TODO:
+9/14/2025
+See where string operations might be replaced with span operations for performance improvement.
+.Replace()
+.Regex() 
+.IndexOf()
+Use ReadOnlySpan<char> where possible.
+
+Determine if EnsureAuthenticated() is actually useful.
+
+Check commented out //[ReturnTypeDiscovery] to make sure it really isn't needed anymore.
+
+
+
 Write unit tests for the DI system to ensure that all services are registered correctly.
+ -- Complete
+ TODO:
+ Should review in more detail to ensure that all services are being registered correctly.
 
 8/24/2025
 

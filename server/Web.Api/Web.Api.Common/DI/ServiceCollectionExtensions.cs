@@ -18,10 +18,12 @@ namespace Web.Api.Common.DI
 
             foreach (var entry in typesWithAttribute)
             {
+                // entry.Attribute is guaranteed not null due to the previous .Where(x => x.Attribute != null)
+                var attribute = entry.Attribute!;
                 services.Add(new ServiceDescriptor(
-                    entry.Attribute.InterfaceType,
+                    attribute.InterfaceType,
                     entry.Type,
-                    entry.Attribute.Lifetime));
+                    attribute.Lifetime));
             }
 
             return services;

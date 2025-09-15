@@ -94,6 +94,7 @@ namespace Web.Api.Common.DI
                     }
                 })
                 .Where(t =>
+                    t != null &&
                     t.IsClass &&
                     !t.IsAbstract &&
                     typeof(IAssemblyDIStartup).IsAssignableFrom(t) &&

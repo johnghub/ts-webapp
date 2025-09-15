@@ -9,10 +9,10 @@ namespace Web.Api.Controllers.Secure
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class WeatherController(IWeatherService weatherService) : PublicController // SecureController //  
+    public class WeatherController(IWeatherService weatherService) : SecureController 
     {
         [HttpGet("getweather", Name = "getweather")]
-        [GenerateProxy(AuthScheme = AuthScheme.Anonymous,
+        [GenerateProxy(AuthScheme = AuthScheme.Cookie,
             Intent = ClientIntent.UI,
             ProxyType = ProxyType.TypeScript,
             AIHint = "Anonymous endpoint. Issuing an HTTP request correct location will retrieve the current weather forecast based on the current location.")]
