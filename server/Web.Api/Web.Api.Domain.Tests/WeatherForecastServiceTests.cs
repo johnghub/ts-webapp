@@ -35,6 +35,13 @@ namespace Web.Api.Domain.Tests
 
             // Act
             var result = service.GetWeatherForecast();
+            
+            if (result.Data == null)
+            {
+                Assert.Fail("Data should not be null");
+                return;
+            }
+
             var forecasts = result.Data.ToArray();
 
             // Assert

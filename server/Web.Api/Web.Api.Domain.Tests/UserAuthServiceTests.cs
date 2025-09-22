@@ -62,7 +62,7 @@ namespace Web.Api.Domain.Tests
         {
             var providerMock = new Mock<IAuthProvider>();
             providerMock.SetupGet(p => p.SupportedCredentialsType).Returns(typeof(UserCredentials));
-            var service = new UserAuthService(new[] { providerMock.Object });
+            var service = new UserAuthService([providerMock.Object]);
 
             var result = await service.AuthenticateAsync(null);
 

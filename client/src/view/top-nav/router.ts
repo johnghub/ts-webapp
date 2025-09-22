@@ -44,6 +44,7 @@ export class Router extends HTMLElement {
     LogoutPage: this.imports.LogoutPage,
     SkiingPage: this.imports.SkiingPage,
     SkatingPage: this.imports.SkatingPage,
+    SwimSuitPage: this.imports.SwimSuitPage,
     WeatherPage: this.imports.WeatherPage,
   };
 

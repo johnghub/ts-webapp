@@ -8,80 +8,8 @@ namespace Web.Api.Common.DI
 
         public static IServiceCollection RegisterDomainServices(this IServiceCollection services)
         {
-            //var foo = AppDomain.CurrentDomain
-            //    .GetAssemblies()
-            //    .SelectMany(assembly =>
-            //    {
-            //        try
-            //        {
-            //            return assembly.GetTypes();
-            //        }
-            //        catch (ReflectionTypeLoadException ex)
-            //        {
-            //            return ex.Types.Where(t => t != null)!;
-            //        }
-            //    })
-            //    .Where(t =>
-            //        t.IsClass &&
-            //        !t.IsAbstract  &&
-            //        typeof(IAssemblyDIStartup).IsAssignableFrom(t)
-            //     );
 
-
-            //var candidates = AppDomain.CurrentDomain.GetAssemblies()
-            //    .SelectMany(a =>
-            //    {
-            //        try { return a.GetTypes(); }
-            //        catch (ReflectionTypeLoadException ex) { return ex.Types.Where(t => t != null)!; }
-            //    })
-            //    .Where(t => typeof(IAssemblyDIStartup).IsAssignableFrom(t))
-            //    .ToList();
-
-            //foreach (var type in candidates)
-            //{
-            //    Console.WriteLine($"Candidate: {type.FullName}");
-            //    var attr = type.GetCustomAttribute<RegisterDIAssemblyAttribute>();
-            //    if (attr != null)
-            //        Console.WriteLine($" --> Has RegisterDIAssemblyAttribute");
-            //}
-
-            //Console.WriteLine("\n\r ---- Run checks \" ---- \n\r");
-
-            //foreach (var type in AppDomain.CurrentDomain.GetAssemblies()
-            //    .SelectMany(a => a.GetTypes())
-            //    .Where(t => t.Name.Contains("Startup")))
-            //{
-
-            //    var hasAttr = type.GetCustomAttribute<RegisterDIAssemblyAttribute>() != null;
-            //    if (hasAttr)
-            //    {
-            //        Console.WriteLine($"  Has [RegisterDIAssemblyAttribute]");
-            //        Console.WriteLine($"TYPE: {type.FullName}");
-
-            //        var interfaces = type.GetInterfaces();
-            //        foreach (var iface in interfaces)
-            //        {
-            //            Console.WriteLine($"  Implements: {iface.FullName}");
-            //        }
-            //    }
-
-            //    var matchesInterface = typeof(IAssemblyDIStartup).IsAssignableFrom(type);
-            //    if (matchesInterface)
-            //    {
-            //        Console.WriteLine($"  Matches IAssemblyDIStartup");
-            //        Console.WriteLine($"TYPE: {type.FullName}");
-
-            //        var interfaces = type.GetInterfaces();
-            //        foreach (var iface in interfaces)
-            //        {
-            //            Console.WriteLine($"  Implements: {iface.FullName}");
-            //        }
-
-            //    }
-            //}
-
-            var startupTypes = AppDomain.CurrentDomain
-                .GetAssemblies()
+            var startupTypes = AppDomain.CurrentDomain.GetAssemblies()
                 .SelectMany(assembly =>
                 {
                     try
@@ -90,7 +18,11 @@ namespace Web.Api.Common.DI
                     }
                     catch (ReflectionTypeLoadException ex)
                     {
-                        return ex.Types.Where(t => t != null)!;
+                        //return ex.Types.Where(t => t != null)!;
+
+                        // TODO: Determine what this is really doing
+                        // ex.Types is Type?[], so filter nulls safely:
+                        return ex.Types.OfType<Type>();
                     }
                 })
                 .Where(t =>
@@ -98,7 +30,7 @@ namespace Web.Api.Common.DI
                     t.IsClass &&
                     !t.IsAbstract &&
                     typeof(IAssemblyDIStartup).IsAssignableFrom(t) &&
-                    t.GetCustomAttribute<RegisterDIAssemblyAttribute>() != null);
+                    t.GetCustomAttribute<RegisterDIAssemblyAttribute>() is not null);
 
             foreach (var type in startupTypes)
             {

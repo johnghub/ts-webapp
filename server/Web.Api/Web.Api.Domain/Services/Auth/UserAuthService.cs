@@ -26,7 +26,7 @@ namespace Web.Api.Domain.Services.Auth
                 _providerMap[type] = provider;
             }
         }
-        public async Task<ServiceResult<bool>> AuthenticateAsync(IAuthCredentials credentials)
+        public async Task<ServiceResult<bool>> AuthenticateAsync(IAuthCredentials? credentials)
         {
             if (credentials == null)
                 return ServiceResult<bool>.FailureResult(["Credentials must not be null."]);
@@ -44,6 +44,6 @@ namespace Web.Api.Domain.Services.Auth
 
     public interface IUserAuthService
     {
-        Task<ServiceResult<bool>> AuthenticateAsync(IAuthCredentials userCredentials);
+        Task<ServiceResult<bool>> AuthenticateAsync(IAuthCredentials? userCredentials);
     }
 }

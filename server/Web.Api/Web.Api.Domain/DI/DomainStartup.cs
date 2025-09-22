@@ -1,12 +1,5 @@
-﻿using AuthProvider;
-using AuthProvider.Interfaces;
-using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using Web.Api.Common.DI;
 
 namespace Web.Api.Domain.DI

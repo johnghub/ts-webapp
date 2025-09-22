@@ -24,7 +24,6 @@ namespace Web.Api.Domain.Services
 
     public interface IWeatherService
     {
-        //[ReturnTypeDiscovery]
         ServiceResult<WeatherData> GetWeather(string location);
     }
 }

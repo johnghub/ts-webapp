@@ -1,4 +1,9 @@
 
+9/21/2025
+Replace hard coded strings with constants where appropriate.
+Delete #if (false) code blocks if they are no longer needed.
+Review concept behind sealed classes and determine where they should be used.
+
 9/14/2025
 See where string operations might be replaced with span operations for performance improvement.
 .Replace()

@@ -7,16 +7,16 @@ namespace Web.Api.SignalR
     {
         private readonly Random _random = new ();
 
-        private readonly int numberOfBars = 10;
         private readonly int _totalLines = 100;
-        private int[] baseValues; // Base values for the bars
-        private int[] colorOffsets; // To hold color offsets
+        // private readonly int _numberOfBars = 100;
+        //private readonly int[] _baseValues; // Base values for the bars
+        //private readonly int[] _colorOffsets; // To hold color offsets
 
         public GraphHub()
         {
             // Initialize base values and color offsets
-            //baseValues = Enumerable.Range(1, numberOfBars).Select(x => _random.Next(10, 36)).ToArray();
-            //colorOffsets = Enumerable.Range(1, numberOfBars).Select(x => _random.Next(0, 256)).ToArray();
+            //_baseValues = Enumerable.Range(1, _numberOfBars).Select(x => _random.Next(10, 36)).ToArray();
+            //_colorOffsets = Enumerable.Range(1, _numberOfBars).Select(x => _random.Next(0, 256)).ToArray();
         }
 
 #if true
@@ -49,17 +49,17 @@ namespace Web.Api.SignalR
             while (true)
             {
                 // Increment color offsets slightly on each broadcast
-                colorOffsets = colorOffsets.Select(x => (x + 5) % 256).ToArray();
+                _colorOffsets = _colorOffsets.Select(x => (x + 5) % 256).ToArray();
 
-                for (int i = 0; i < numberOfBars; i++)
+                for (int i = 0; i < _numberOfBars; i++)
                 {
-                    double angle = 2 * Math.PI * i / numberOfBars;
-                    int waveValue = (int)(baseValues[i] + 20 * Math.Sin(angle + DateTime.UtcNow.Ticks / 1e+7)); // subtle wave pattern
+                    double angle = 2 * Math.PI * i / _numberOfBars;
+                    int waveValue = (int)(_baseValues[i] + 20 * Math.Sin(angle + DateTime.UtcNow.Ticks / 1e+7)); // subtle wave pattern
 
                     // Generate a smooth gradient over time
-                    int red = (colorOffsets[i] + 30) % 256;
-                    int green = (colorOffsets[i] + 80) % 256;
-                    int blue = (colorOffsets[i] + 130) % 256;
+                    int red = (_colorOffsets[i] + 30) % 256;
+                    int green = (_colorOffsets[i] + 80) % 256;
+                    int blue = (_colorOffsets[i] + 130) % 256;
 
                     data.Add(new BarData
                     {
@@ -106,16 +106,13 @@ namespace Web.Api.SignalR
         public async Task BroadcastGraphData()
         {
 
-            int numberOfBars = 100;
-
-
             while (true)
             {
 
                 var data = new List<BarData>();
 
                 // Generate an array of 10 random integers (0-100)
-                for (int i = 0; i < numberOfBars; i++)
+                for (int i = 0; i < _numberOfBars; i++)
                 {
 
                     int startRed = _random.Next(256);
@@ -123,11 +120,11 @@ namespace Web.Api.SignalR
                     int startBlue = _random.Next(256);
 
 
-                    double angle = 2 * Math.PI * i / numberOfBars; // Full wave across the bars
+                    double angle = 2 * Math.PI * i / _numberOfBars; // Full wave across the bars
                     int value = (int)(5 + 20 * Math.Sin(angle)); // Values between 50 and 100
 
                     // Calculate color based on position in array to ensure gradual change
-                    double factor = (double)i / (numberOfBars - 1);
+                    double factor = (double)i / (_numberOfBars - 1);
                     int red = (int)(startRed * (1 - factor) + 255 * factor);
                     int green = (int)(startGreen * (1 - factor) + 255 * factor);
                     int blue = (int)(startBlue * (1 - factor) + 255 * factor);

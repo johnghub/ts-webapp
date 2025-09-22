@@ -1,14 +1,13 @@
 using AuthProvider.DI;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Web.Api.Common.DI;
 using Web.Api.Domain.DI;
 using Web.Api.SignalR;
 
-var builder = WebApplication.CreateBuilder(args);
+const string authCookieName = "YourAuthCookie";
 
-// TODO: Should be able to delete this. It appears all DLLs have to be forced loaded to ensure services are registered with DI container
-// Or register as transient if a new instance is needed every time it's injected
-//builder.Services.AddTransient<IWeatherService, WeatherService>();
+var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddSignalR();
@@ -25,9 +24,9 @@ builder.Services.AddAuthentication(options =>
 {
     options.Cookie.HttpOnly = true;
     options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-    options.Cookie.SameSite = SameSiteMode.None; // Required for cross-origin requests
-    //options.Cookie.SameSite = SameSiteMode.Strict; // 
-    options.Cookie.Name = "YourAuthCookie";
+//    options.Cookie.SameSite = SameSiteMode.None; // Required for cross-origin requests
+    options.Cookie.SameSite = SameSiteMode.Strict; // 
+    options.Cookie.Name = authCookieName;
     options.LoginPath = "/login"; // Path for login API
     options.LogoutPath = "/logout"; // Path for logout API
     options.AccessDeniedPath = "/access-denied";
@@ -35,24 +34,39 @@ builder.Services.AddAuthentication(options =>
     options.ExpireTimeSpan = TimeSpan.FromHours(1); // Adjust as necessary
     options.SlidingExpiration = true; // Renew the cookie if close to expiration
     options.Cookie.Path = "/";
-    //options.Cookie.Domain = "localhost";
     options.Events = new CookieAuthenticationEvents
     {
-        OnValidatePrincipal = context =>
+        OnValidatePrincipal = async context =>
         {
+            // Reject if we somehow don't have an authenticated principal
+            if (context.Principal?.Identity?.IsAuthenticated != true)
+            {
+                context.RejectPrincipal();           // invalidate the cookie
+                                                     
+                // optionally: await ctx.HttpContext.SignOutAsync(); // if you're in an async path
+                await context.HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+                return; 
+            }
+
             // Debug claims on cookie validation
             Console.WriteLine("Validating principal:");
             foreach (var claim in context.Principal.Claims)
             {
                 Console.WriteLine($"{claim.Type}: {claim.Value}");
             }
-            return Task.CompletedTask;
         }
     };
     options.Events = new CookieAuthenticationEvents
     {
         OnSigningIn = context =>
         {
+
+            if (context.Principal is not { } principal)
+            {
+                Console.WriteLine("Signing in with no principal (skipping claim log).");
+                return Task.CompletedTask;
+            }
+
             Console.WriteLine("Signing in with claims:");
             foreach (var claim in context.Principal.Claims)
             {
@@ -84,15 +98,12 @@ var app = builder.Build();
 
 app.Use(async (context, next) =>
 {
-    var cookie = context.Request.Cookies["YourAuthCookie"];
+    var cookie = context.Request.Cookies[authCookieName];
     if (string.IsNullOrEmpty(cookie))
-    {
         Console.WriteLine("Cookie is missing");
-    }
-    else
-    {
-        Console.WriteLine($"Cookie received: {cookie}");
-    }
+    //else
+    //    Console.WriteLine($"Cookie received: {cookie}");
+
     await next();
 });
 
@@ -125,9 +136,14 @@ app.Use(async (context, next) =>
 {
     await next();
 
-    if (context.Response.StatusCode == 404 && !context.User.Identity.IsAuthenticated)
+    // Only flip the code if the response hasn't started yet
+    if (!context.Response.HasStarted
+        && context.Response.StatusCode == StatusCodes.Status404NotFound
+        && context.User is not { Identity.IsAuthenticated: true })
     {
-        context.Response.StatusCode = 403;
+        context.Response.Clear(); // clear any 404 body written by downstream
+        context.Response.StatusCode = StatusCodes.Status403Forbidden;
+
     }
 });
 

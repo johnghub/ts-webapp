@@ -21,6 +21,7 @@ namespace Web.Api.Controllers.Public
             AIHint = "This is a login endpoint. Issuing an HTTP request correct credentials will authenticate the user.")]
         public async Task<IActionResult> Login([FromBody] UserCredentials credentials)
         {
+
             var isValidUser = await authService.AuthenticateAsync(credentials);
 
             if (!isValidUser.Success)

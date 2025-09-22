@@ -17,13 +17,13 @@ namespace Web.Api.Domain.Tests
         {
             _weatherServiceMock = new Mock<IWeatherService>();
 
-            var user = CreateMockUser("TestUser", "testuser@example.com");
+            _ = CreateMockUser("TestUser", "testuser@example.com");
 
             _controller = new(_weatherServiceMock.Object);
 
         }
 
-        private ClaimsPrincipal CreateMockUser(string name, string email, string role = null)
+        private static ClaimsPrincipal CreateMockUser(string name, string email, string role = "")
         {
             var claims = new List<Claim>
             {

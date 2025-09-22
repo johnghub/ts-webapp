@@ -4,7 +4,6 @@ import { WeatherPageFilterDialog } from "../dialogs/WeatherPageFilterDialog";
 import { WEATHER_EDIT_MODAL_TAG } from "../../../common";
 import { WeatherPageEditDialog } from "../dialogs/WeatherPageEditDialog";
 import { GetWeatherForecast } from "../../../codegen/api";
-//import {GetWeatherForecast} from "../../../"
 
 type PredicateFunction = (item: IWeatherData, value: string) => boolean;
 
@@ -16,6 +15,8 @@ export default class WeatherTable
   private table: HTMLTableElement | undefined;
   private div: HTMLDivElement | undefined;
   private headers!: NodeListOf<HTMLElement>;
+  private isSorted: boolean = false;
+  private isFiltered: boolean = false;
 
   constructor() {
     super();
@@ -112,6 +113,8 @@ export default class WeatherTable
   }
 
   handleFilter(event: any) {
+    this.isFiltered = true;
+    this.updateResetButtonState();
     // Implement your filtering logic here
     const { filterType, filterInput } = event.detail;
     console.log(`Filtering by ${filterType} for value ${filterInput}`);
@@ -131,6 +134,9 @@ export default class WeatherTable
   resetData() {
     weatherDataManager.resetFiltersAndSorting();
     this.clearSortIndicators(this.headers);
+    this.isSorted = false;
+    this.isFiltered = false;
+    this.updateResetButtonState();
   }
 
   async fetchAndDisplayWeather(): Promise<void> {
@@ -171,9 +177,12 @@ export default class WeatherTable
     resetBtn.id = "resetBtn";
     resetBtn.innerHTML = '<i class="fas fa-sync-alt"></i>'; // Using Font Awesome recycle icon
     resetBtn.style.cursor = "pointer";
-    resetBtn.title = "Reset"; // Tooltip to indicate the action
+    resetBtn.title = "Reset filter/sort"; // Tooltip to indicate the action
     resetBtn.style.flex = "0 0 auto"; // Don't grow or shrink
     resetBtn.style.padding = "10px 15px"; // Adequate padding for button size
+    // Initially disabled
+    resetBtn.disabled = true;
+    resetBtn.style.opacity = "0.5"; // Optional: visually indicate disabled state
 
     const addButton = document.createElement("button");
     addButton.id = "addBtn";
@@ -233,6 +242,10 @@ export default class WeatherTable
                   vertical-align: middle; /* Vertically center header text */
                   padding: 8px; /* Padding around text */
                   border: 1px solid #ddd; /* Border around each header cell */
+                  cursor: pointer; /* Pointer cursor to indicate clickable for sorting */
+              }
+              .weather-table th:last-child {
+                  cursor: default; /* No sorting cursor for the Actions column */
               }
               .weather-table td {
                   text-align: center; /* Center-aligns all cell content, adjust if necessary */
@@ -377,6 +390,18 @@ export default class WeatherTable
     if (activeHeader) {
       // Ensure there is an active header to update
       activeHeader.classList.add(asc ? "asc" : "desc");
+      this.isSorted = true;
+      this.updateResetButtonState();
+    }
+  }
+
+  updateResetButtonState(): void {
+    const resetBtn = this.querySelector<HTMLButtonElement>("#resetBtn");
+    if (resetBtn) {
+      const shouldEnable = this.isSorted || this.isFiltered;
+      resetBtn.disabled = !shouldEnable;
+      resetBtn.style.opacity = shouldEnable ? "1" : "0.5";
+      resetBtn.style.cursor = shouldEnable ? "pointer" : "default";
     }
   }
 
