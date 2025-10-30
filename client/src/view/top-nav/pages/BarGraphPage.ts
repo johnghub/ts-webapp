@@ -20,7 +20,7 @@ export default class BarGraphPage
     this.setupSignalR();
   }
 
-  connectedCallback(): void {
+  async connectedCallback(): Promise<void> {
     if (document.readyState === "complete") {
       this.resizeCanvas();
     } else {
@@ -33,7 +33,14 @@ export default class BarGraphPage
 
   disconnectedCallback(): void {
     window.removeEventListener("resize", this.resizeCanvas);
-    this.connection.stop();
+
+    if (this.connection) {
+      console.log("About to call stop...");
+      this.connection.stop();
+      console.log("Stop completed");
+    } else {
+      console.error("NO CONNECTION TO STOP!");
+    }
   }
 
   private resizeCanvas = (): void => {

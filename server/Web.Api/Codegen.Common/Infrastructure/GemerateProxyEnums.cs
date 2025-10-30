@@ -1,13 +1,13 @@
 ﻿
 namespace Codegen.Common.Infrastructure
 {
-    public enum AuthScheme
-    {
-        OAuth,
-        Cookie,
-        ClientCertificate,
-        Anonymous
-    }
+    //public enum AuthScheme
+    //{
+    //    OAuth,
+    //    Cookie,
+    //    ClientCertificate,
+    //    Anonymous
+    //}
 
     public enum ClientIntent
     {

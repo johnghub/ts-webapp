@@ -14,7 +14,7 @@ namespace Web.Api.Domain.Services.Auth
         public UserAuthService(IEnumerable<IAuthProvider> authProviders)
         {
             // Ensure only one provider per credentials type
-            _providerMap = new Dictionary<Type, IAuthProvider>();
+            _providerMap = []; //new Dictionary<Type, IAuthProvider>();
             foreach (var provider in authProviders)
             {
                 var type = provider.SupportedCredentialsType;

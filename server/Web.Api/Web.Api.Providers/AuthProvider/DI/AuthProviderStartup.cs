@@ -13,7 +13,7 @@ namespace AuthProvider.DI
         public void RegisterServices(IServiceCollection services)
         {
             // Explicit edge-case DI registrations
-            services.AddTransient<IAuthProvider, StubUserAuthProvider>();
+            services.AddTransient<IAuthProvider, StubUserUsernamePwAuthProvider>();
         }
     }
 }

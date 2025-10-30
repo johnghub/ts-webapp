@@ -1,6 +1,7 @@
 ﻿// See https://aka.ms/new-console-template for more information
 using ApiMetaData.Infrastructure;
 using ApiMetaData.Models;
+using Codegen.Common.Attributes;
 using Codegen.Common.Infrastructure;
 using CommandLine;
 using Microsoft.CodeAnalysis;
@@ -88,7 +89,7 @@ void ProcessControllerFile(string filePath, Assembly assembly, string parameterN
             Console.WriteLine($"Controller: {classNode.Identifier.Text}");
 
             // Extract the Route attribute from the controller
-            string controllerRoutePath = null;
+            string controllerRoutePath = "";
             var controllerAttributes = classNode.AttributeLists.SelectMany(attrList => attrList.Attributes);
             foreach (var attribute in controllerAttributes)
             {
@@ -171,7 +172,7 @@ void ProcessControllerFile(string filePath, Assembly assembly, string parameterN
                 // === End GenerateProxy attribute extraction ===
 
                 // Extract RoutePath if specified in the attribute
-                string routePath = null;
+                string routePath = "";
                 if (httpVerbAttribute.ArgumentList != null && httpVerbAttribute.ArgumentList.Arguments.Count > 0)
                 {
                     // Get the route path from the first argument (e.g., [HttpGet("routePath")])

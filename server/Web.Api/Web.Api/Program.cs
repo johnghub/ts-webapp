@@ -24,7 +24,7 @@ builder.Services.AddAuthentication(options =>
 {
     options.Cookie.HttpOnly = true;
     options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-//    options.Cookie.SameSite = SameSiteMode.None; // Required for cross-origin requests
+    //    options.Cookie.SameSite = SameSiteMode.None; // Required for cross-origin requests
     options.Cookie.SameSite = SameSiteMode.Strict; // 
     options.Cookie.Name = authCookieName;
     options.LoginPath = "/login"; // Path for login API
@@ -42,10 +42,10 @@ builder.Services.AddAuthentication(options =>
             if (context.Principal?.Identity?.IsAuthenticated != true)
             {
                 context.RejectPrincipal();           // invalidate the cookie
-                                                     
+
                 // optionally: await ctx.HttpContext.SignOutAsync(); // if you're in an async path
                 await context.HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-                return; 
+                return;
             }
 
             // Debug claims on cookie validation
@@ -150,4 +150,7 @@ app.Use(async (context, next) =>
 app.MapControllers();
 app.MapHub<GraphHub>("/graphHub"); // Define the SignalR hub route
 
+Console.WriteLine("Checkpoint 3");
+
 app.Run();
+

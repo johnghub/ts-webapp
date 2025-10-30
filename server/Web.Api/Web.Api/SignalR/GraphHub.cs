@@ -151,6 +151,19 @@ namespace Web.Api.SignalR
             await BroadcastGraphData();
         }
 
+        public override async Task OnDisconnectedAsync(Exception? exception)
+        {
+            // Clean up resources for this connection
+            Console.WriteLine($"Client disconnected: {Context.ConnectionId}");
+
+            if (exception != null)
+            {
+                Console.WriteLine($"Disconnect exception: {exception.Message}");
+            }
+
+            await base.OnDisconnectedAsync(exception);
+        }
+
     }
     
 }

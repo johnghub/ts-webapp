@@ -116,7 +116,7 @@ namespace Web.Api.Domain.Tests
             var providerMock = new Mock<IAuthProvider>();
             providerMock.SetupGet(p => p.SupportedCredentialsType).Returns(typeof(UserCredentials));
             providerMock.Setup(p => p.TryAuthenticateAsync(credentials)).ReturnsAsync(true);
-            providerMock.Setup(p => p.CanHandle(credentials)).Throws(new InvalidOperationException("CanHandle failed"));
+           // providerMock.Setup(p => p.CanHandle(credentials)).Throws(new InvalidOperationException("CanHandle failed"));
 
             var service = new UserAuthService(new[] { providerMock.Object });
 

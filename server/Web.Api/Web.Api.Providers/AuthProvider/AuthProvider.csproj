@@ -4,14 +4,26 @@
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+
+    <!-- Emit generated files to disk for debugging -->
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+    <CompilerGeneratedFilesOutputPath>$(BaseIntermediateOutputPath)\Generated</CompilerGeneratedFilesOutputPath>
+    <!-- Add these for debugging -->
+    <ReportAnalyzer>true</ReportAnalyzer>
+    
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.7" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.10" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Codegen.AuthProviders\Codegen.AuthProviders.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\Codegen.Common\Codegen.Common.csproj" />
     <ProjectReference Include="..\..\Web.Api.Common\Web.Api.Common.csproj" />
+    <Compile Update="@(Compile)">
+      <Visible Condition="'%(Compile.Identity)' != '' and $([System.String]::Copy('%(Compile.Identity)').Contains('Generated'))">true</Visible>
+    </Compile>
   </ItemGroup>
 
 </Project>

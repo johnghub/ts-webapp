@@ -1,4 +1,21 @@
 
+10/29/2025
+Looks like SignalR isn't disconnecting cleanly when the browser tab is closed or when a different page is loaded. Maybe debug later. Generated username / password 
+auth provider works.
+Clean up AuthenticateAsync_ProviderThrowsInCanHandle_PropagatesException test as needed.
+
+10/5/2025
+Note that IAuthCredentials is an empty interface used to mark classes that contain authentication credentials. 
+This allows the AuthProvider system to be extended by adding new classes that implement this interface without changing existing code.
+This is useful for supporting multiple authentication methods.
+The AuthProvider system uses DI to inject the appropriate IAuthProvider implementation based on the IAuthCredentials type passed to the Login method.
+How does this make sense? The IAuthCredentials interface is used as a marker interface to identify classes that contain authentication credentials.
+The AuthProvider system uses this interface to determine which IAuthProvider implementation to use for a given set of credentials.
+For example, if you have a class called UsernamePasswordCredentials that implements IAuthCredentials, you can create an IAuthProvider implementation called UsernamePasswordAuthProvider that handles authentication using a username and password.
+When the Login method is called with an instance of UsernamePasswordCredentials, the AuthProvider system will use the UsernamePasswordAuthProvider to perform the authentication.
+Is there a better way to do this? 
+
+
 9/21/2025
 Replace hard coded strings with constants where appropriate.
 Delete #if (false) code blocks if they are no longer needed.
@@ -14,6 +31,7 @@ Use ReadOnlySpan<char> where possible.
 Determine if EnsureAuthenticated() is actually useful.
 
 Check commented out //[ReturnTypeDiscovery] to make sure it really isn't needed anymore.
+-- Complete, deleted
 
 
 

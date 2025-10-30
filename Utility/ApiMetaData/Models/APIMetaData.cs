@@ -1,5 +1,5 @@
 ﻿
-using ApiMetaData.Infrastructure;
+using Codegen.Common.Attributes;
 using Codegen.Common.Infrastructure;
 
 namespace ApiMetaData.Models
